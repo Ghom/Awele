@@ -73,14 +73,17 @@ class MousseController:
     #---------------------------------------------------------------------------
     def notify(self, event):
         if isinstance(event, TickEvent):
-            for event in pygame.event.get():   
-                if event.type == MOUSEBUTTONDOWN:
-                    ev = None 
+            for event in pygame.event.get():
+                ev = None
+                if event.type == QUIT:
+                        ev = QuitEvent()
+                        
+                if event.type == MOUSEBUTTONDOWN: 
                     if event.button == 1:
                         ev = LeftClickEvent( event.pos )
 
-                    if ev:
-                        self.event_manager.post( ev )
+                if ev:
+                    self.event_manager.post( ev )
                     
 #------------------------------------------------------------------------------
 class KeyboardController:
@@ -96,14 +99,7 @@ class KeyboardController:
         def notify(self, event):
             if isinstance( event, TickEvent ):
                 #Handle Input Events
-                for event in pygame.event.get():
-                    ev = None
-                    if event.type == QUIT:
-                        ev = QuitEvent()
-
-                    if ev:
-                        self.event_manager.post( ev )
-
+                return
 
 #------------------------------------------------------------------------------ 
 class CPUSpinnerController:
@@ -173,6 +169,13 @@ class PitSprite(pygame.sprite.Sprite):
             if isinstance(event, LeftClickEvent):
                 if self.rect.collidepoint(event.pos):
                     self.event_manager.post(PitClickedEvent(self.pit))
+
+        def update(self):
+            #Debug("Update pit sprite of pit",self.pit.id,"containing",self.pit.seeds,"seeds")
+            myfont = pygame.font.SysFont("monospace", 15)
+            text = str(self.pit.seeds)
+            label = myfont.render(text, 1, YELLOW)
+            self.image.blit(label, self.rect.center)
 
 #------------------------------------------------------------------------------
 class StoreSprite(pygame.sprite.Sprite):
@@ -254,7 +257,23 @@ class BoardView:
         #----------------------------------------------------------------------
         def notify(self, event):
             if isinstance(event, TickEvent):
-                return
+
+                #Draw Everything
+
+                self.background = pygame.Surface( self.window.get_size() )
+                self.background.fill( (0,0,0) )
+                self.back_sprites.clear( self.window, self.background )
+                self.pit_spites.clear( self.window, self.background )
+
+                self.back_sprites.update()
+                self.pit_spites.update()
+
+                dirtyRects1 = self.back_sprites.draw( self.window )
+                dirtyRects2 = self.pit_spites.draw( self.window )
+                
+                dirtyRects = dirtyRects1 + dirtyRects2
+                pygame.display.update( dirtyRects )
+                
             if isinstance(event, GameStartedEvent):
                 self.init_containers(event.game)
         
@@ -270,6 +289,10 @@ class Container:
         def pass_seeds(self, seeds):
             self.seeds += 1
             seeds -= 1
+            if isinstance(self, Pit):
+                Debug("Pit",self.id,"now contain",self.seeds,"seeds")
+            else:
+                Debug("Store now contain",self.seeds,"seeds")
             if seeds > 0:
                 self.next.pass_seeds(seeds)
             else:
@@ -304,6 +327,8 @@ class Pit(Container):
         def distribute(self):
             seeds = self.seeds
             self.seeds = 0
+            Debug("Distribute",seeds,"from pit",self.id)
+            Debug("Pit",self.id,"now contain",self.seeds,"seeds")
             self.next.pass_seeds(seeds)
                         
 #------------------------------------------------------------------------------
@@ -401,8 +426,9 @@ def main():
         event_manager = EventManager()
 
         board_view = BoardView( event_manager )
-        
-        keybd = KeyboardController( event_manager )
+
+        # No keyboard needed for now
+        #keybd = KeyboardController( event_manager )
         mousse = MousseController ( event_manager ) 
         spinner = CPUSpinnerController( event_manager )
 
