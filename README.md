@@ -1,2 +1,2 @@
 # Awele
-African strategie game in python using pygame
+African strategic game in python using pygame
