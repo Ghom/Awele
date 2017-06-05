@@ -1,0 +1,47 @@
+ecran principale:
+---------------
+jouer: ouvre une instance de jeu avec 2 joueur humain
+
+ecran de jeu:
+---------------
+possede une planche
+possede 2 objets de type joueur
+
+ecran des score:
+---------------
+affiche le score
+menu: retourne au menu principale
+rejouer: ouvre une instance de jeu avec 2 joueur humain
+
+objet planche:
+-----------
+possede une image
+possede un identifiant de tour actuel(joueur1 ou joueur2)
+possede 2 banque (une par joueur)
+possede 2 liste de pits (une par joueur)
+action debut de tour
+action selectioner pit
+action distribuer graine
+action verifier action special
+action fin de tour
+|--> action verifier fin de partie quand les 6 pits d'un des deux joueur sont vide (aller a ecran des scores)
+
+objet banque:
+-------------
+possede une image
+possede un nombre de graine
+action ajouter graine
+action retirer graine
+
+objet pit:
+---------
+possede une image
+possede un nombre de graine
+action ajouter graine
+action retirer graine
+
+objet joueur:
+------------
+possede un nom
+possede un cote de planche (un identifiant pour savoir si le joueur possede la liste de pits 1 ou 2)
+possede un score (nombre de graine dans sa banque)
