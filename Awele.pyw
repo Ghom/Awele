@@ -107,11 +107,13 @@ class CPUSpinnerController:
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
 
+            self.clock = pygame.time.Clock()    
             self.keep_going = True
             
         #----------------------------------------------------------------------
         def run(self):
             while self.keep_going:
+                self.clock.tick(30)
                 event = TickEvent()
                 self.event_manager.post(event)
             pygame.quit()
@@ -172,9 +174,13 @@ class PitSprite(pygame.sprite.Sprite):
 
         def update(self):
             #Debug("Update pit sprite of pit",self.pit.id,"containing",self.pit.seeds,"seeds")
+            self.image = pygame.Surface(PIT_SIZE).convert_alpha()
+            self.image.fill((0,0,0,0))
+            pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.pit.seeds)
-            label = myfont.render(text, 1, YELLOW)
+            self.image = label = myfont.render(text, 1, YELLOW)
             self.image.blit(label, self.rect.center)
 
 #------------------------------------------------------------------------------
@@ -220,7 +226,7 @@ class BoardView:
             font = pygame.font.Font(None, 30)
 
             self.back_sprites = pygame.sprite.RenderUpdates()
-            self.pit_spites = pygame.sprite.RenderUpdates()
+            self.pit_sprites = pygame.sprite.RenderUpdates()
             background = BackgroundSprite( self.back_sprites )
             background.rect = (0, 0)
 
@@ -234,25 +240,25 @@ class BoardView:
         def init_containers(self, game):
                 for container in game.player2.pit_list:
                     if isinstance(container, Pit):
-                        pit_sprite = PitSprite( self.event_manager, container, self.pit_spites )
+                        pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
                         pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
                         pit_sprite.rect.y = FIRST_PIT_POS[1]
                     if isinstance(container, Store):
-                        store_sprite = StoreSprite( container, self.pit_spites )
+                        store_sprite = StoreSprite( container, self.pit_sprites )
                         store_sprite.rect.x = BOARD_POSITION[0] + BORDER_GAP[0]
                         store_sprite.rect.y = BOARD_POSITION[1] + BORDER_GAP[1]
                         
                 for container in game.player1.pit_list:
                     if isinstance(container, Pit):
-                        pit_sprite = PitSprite( self.event_manager, container, self.pit_spites )
+                        pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
                         pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
                         pit_sprite.rect.y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
                     if isinstance(container, Store):
-                        store_sprite = StoreSprite( container, self.pit_spites )
+                        store_sprite = StoreSprite( container, self.pit_sprites )
                         store_sprite.rect.x = BOARD_POSITION[0] + BOARD_SIZE[0] - BORDER_GAP[0] - STORE_SIZE[0]
                         store_sprite.rect.y = BOARD_POSITION[1] + BORDER_GAP[1]
 
-                self.pit_spites.draw( self.window )
+                self.pit_sprites.draw( self.window )
                 pygame.display.flip()
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -263,13 +269,13 @@ class BoardView:
                 self.background = pygame.Surface( self.window.get_size() )
                 self.background.fill( (0,0,0) )
                 self.back_sprites.clear( self.window, self.background )
-                self.pit_spites.clear( self.window, self.background )
+                self.pit_sprites.clear( self.window, self.background )
 
                 self.back_sprites.update()
-                self.pit_spites.update()
+                self.pit_sprites.update()
 
                 dirtyRects1 = self.back_sprites.draw( self.window )
-                dirtyRects2 = self.pit_spites.draw( self.window )
+                dirtyRects2 = self.pit_sprites.draw( self.window )
                 
                 dirtyRects = dirtyRects1 + dirtyRects2
                 pygame.display.update( dirtyRects )
