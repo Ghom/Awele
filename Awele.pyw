@@ -31,10 +31,21 @@ class GameStartedEvent(Event):
         def __init__(self, game):
             self.name = "Game Started Event"
             self.game = game
+
+class GameFinishedEvent(Event):
+        def __init__(self, game):
+            self.name = "Game Finished Event"
+            self.game = game
             
 class QuitEvent(Event):
         def __init__(self):
             self.name = "Quit Event"
+
+class TextInfoEvent(Event):
+        def __init__(self, text, append=False):
+            self.name = "Text info Event"
+            self.text = text
+            self.append = append
 
 #------------------------------------------------------------------------------
 class EventManager:
@@ -222,6 +233,44 @@ class BoardSprite(pygame.sprite.Sprite):
         def __init__(self, group=None):
             pygame.sprite.Sprite.__init__(self, group)
             self.image = pygame.image.load(PATH_BOARD_SKIN).convert()
+
+#------------------------------------------------------------------------------
+class TextInfoSprite(pygame.sprite.Sprite):
+        def __init__(self, size, position, text, group=()):
+            pygame.sprite.Sprite.__init__(self, group)
+            self.size = size
+            self.text = text
+            self.position = position
+            
+            # Draw a white rectangle surrounded by black border
+            self.image = pygame.Surface(self.size).convert()
+            self.image.fill(WHITE)
+            pygame.draw.rect(self.image, BLACK, [ (0,0), self.size ], 5)
+            self.rect = self.image.get_rect()
+            self.rect.x = self.position[0]
+            self.rect.y = self.position[1]
+
+            self.myfont = pygame.font.SysFont("monospace", 15)
+            label = self.myfont.render(self.text, 1, BLACK)
+            self.image.blit(label, ( 10, (self.size[1]/2)-10 ))
+
+        def update(self, text=None, append=False):
+            if text != None:
+                new_text = text
+            else:
+                new_text = self.text
+
+            if append:
+                self.text += new_text
+            else:
+                self.text = new_text
+                
+            self.image = pygame.Surface(self.size).convert()
+            self.image.fill(WHITE)
+            pygame.draw.rect(self.image, BLACK, [ (0,0), self.size ], 5)
+
+            label = self.myfont.render(self.text, 1, BLACK)
+            self.image.blit(label, ( 10, (self.size[1]/2)-10 ))
             
 #------------------------------------------------------------------------------
 class BoardView:
@@ -239,6 +288,8 @@ class BoardView:
             self.pit_sprites = pygame.sprite.RenderUpdates()
             background = BackgroundSprite( self.back_sprites )
             background.rect = (0, 0)
+
+            self.text_info_sprite = TextInfoSprite((BOARD_SIZE[0],30),(BOARD_POSITION[0],80),"",self.back_sprites)
 
             board = BoardSprite( self.back_sprites )
             board.rect = BOARD_POSITION
@@ -295,6 +346,9 @@ class BoardView:
                 
             if isinstance(event, GameStartedEvent):
                 self.init_containers(event.game)
+
+            if isinstance(event, TextInfoEvent):
+                self.text_info_sprite.update(event.text, event.append)
         
 #------------------------------------------------------------------------------
 class Container:
@@ -407,6 +461,7 @@ class Game:
             self.play_again = False
 
             self.event_manager.post(GameStartedEvent(self))
+            self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
 
         #----------------------------------------------------------------------
         def end_turn(self):
@@ -415,6 +470,7 @@ class Game:
             else:
                 self.play_again = False
             Debug("Active player:",self.active_player.name)
+            self.event_manager.post(TextInfoEvent("["+self.active_player.name+"]", True))
 
         #----------------------------------------------------------------------
         def end_game(self):
@@ -427,6 +483,14 @@ class Game:
                 else:
                     #and putting them in the store
                     container.add_seed(remaining_seeds)
+
+            self.event_manager.post(GameFinishedEvent(self))
+            
+            if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
+                winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
+                self.event_manager.post(TextInfoEvent("The game is over. "+winner.name+" won with "+str(winner.pit_list[6].seeds)+" seeds"))
+            else:
+                self.event_manager.post(TextInfoEvent("The game is over. No winner this is a draw"))
             
         #---------------------------------------------------------------------
         def check_special_actions(self, last_pit):
@@ -452,10 +516,12 @@ class Game:
                 if isinstance(last_pit, Store):
                     # each player only have one Store
                     Debug("SPECIAL: Player last seed ended in his own Store he can play again")
+                    self.event_manager.post(TextInfoEvent("Your last seed ended in your Store, play again "))
                     self.play_again = True
                 elif last_pit.seeds == 1:
                     # means that the last seed ended in an empty pit of his own
                     Debug("SPECIAL: Player last seed ended in an empty pit of his own he can put the content of the opposite pit plus de last seed in his Store")
+                    self.event_manager.post(TextInfoEvent("Your last seed ended in one of your empty pit"))
                     opposite_pit = pit_list_inactive[5 - last_pit.id]
                     
                     collected_seeds = opposite_pit.take_seeds() + last_pit.take_seeds()
@@ -469,9 +535,12 @@ class Game:
                     if not event.pit.distribute():
                         self.play_again == True
                         Debug("This pit is empty choose another one")
+                        self.event_manager.post(TextInfoEvent("This pit is empty choose another one"))
                 else:
                     Debug("This pit doesn't belong to you")
+                    self.event_manager.post(TextInfoEvent("This pit doesn't belong to you"))
             if isinstance(event, SeedDistributionCompleteEvent ):
+                self.event_manager.post(TextInfoEvent(""))
                 self.check_special_actions(event.container)
                 self.end_turn()
 #------------------------------------------------------------------------------
