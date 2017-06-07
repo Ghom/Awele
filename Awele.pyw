@@ -344,11 +344,17 @@ class Pit(Container):
             self.seeds = 6
 
         def distribute(self):
+            if self.seeds == 0:
+                Debug("Can't distribute this pit is empty")
+                return False
+                #need to create exeption for that
+            
             seeds = self.seeds
             self.seeds = 0
             Debug("Distribute",seeds,"from pit",self.id)
             Debug("Pit",self.id,"now contain",self.seeds,"seeds")
             self.next.pass_seeds(seeds)
+            return True
                         
 #------------------------------------------------------------------------------
 class Store(Container):
@@ -433,9 +439,7 @@ class Game:
         def notify(self, event):
             if isinstance(event, PitClickedEvent ):
                 if event.pit in self.active_player.pit_list:
-                    if event.pit.seeds != 0:
-                        event.pit.distribute()
-                    else:
+                    if not event.pit.distribute():
                         self.play_again == True
                         Debug("This pit is empty choose another one")
                 else:
