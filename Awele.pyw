@@ -433,7 +433,11 @@ class Game:
         def notify(self, event):
             if isinstance(event, PitClickedEvent ):
                 if event.pit in self.active_player.pit_list:
-                    event.pit.distribute()
+                    if event.pit.seeds != 0:
+                        event.pit.distribute()
+                    else:
+                        self.play_again == True
+                        Debug("This pit is empty choose another one")
                 else:
                     Debug("This pit doesn't belong to you")
             if isinstance(event, SeedDistributionCompleteEvent ):
