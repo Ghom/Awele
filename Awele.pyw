@@ -158,7 +158,7 @@ class PitSprite(pygame.sprite.Sprite):
             # Draw a rectangle on a transparent white surface
             self.image = pygame.Surface(PIT_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
             self.rect = self.image.get_rect()
 
             myfont = pygame.font.SysFont("monospace", 15)
@@ -176,7 +176,7 @@ class PitSprite(pygame.sprite.Sprite):
             #Debug("Update pit sprite of pit",self.pit.id,"containing",self.pit.seeds,"seeds")
             self.image = pygame.Surface(PIT_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
 
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.pit.seeds)
@@ -193,7 +193,7 @@ class StoreSprite(pygame.sprite.Sprite):
             # Draw a rectangle on a transparent white surface
             self.image = pygame.Surface(STORE_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
+            #pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
             self.rect = self.image.get_rect()
 
             myfont = pygame.font.SysFont("monospace", 15)
@@ -204,7 +204,7 @@ class StoreSprite(pygame.sprite.Sprite):
         def update(self):
             self.image = pygame.Surface(STORE_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
+            #pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
 
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.store.seeds)
