@@ -199,7 +199,17 @@ class StoreSprite(pygame.sprite.Sprite):
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.store.seeds)
             label = myfont.render(text, 1, YELLOW)
-            self.image.blit(label, self.rect.center)
+            self.image.blit(label, ( STORE_SIZE[0]/2, STORE_SIZE[1]/2 ))
+
+        def update(self):
+            self.image = pygame.Surface(STORE_SIZE).convert_alpha()
+            self.image.fill((0,0,0,0))
+            pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
+
+            myfont = pygame.font.SysFont("monospace", 15)
+            text = str(self.store.seeds)
+            label = myfont.render(text, 1, YELLOW)
+            self.image.blit(label, ( STORE_SIZE[0]/2, STORE_SIZE[1]/2 ))
             
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):
