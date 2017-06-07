@@ -238,16 +238,19 @@ class BoardView:
 
         #----------------------------------------------------------------------
         def init_containers(self, game):
+
+                # player 2 owned the top pits and they need to be constructed from RIGHT to LEFT (1 - 6)
                 for container in game.player2.pit_list:
                     if isinstance(container, Pit):
                         pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
-                        pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
+                        pit_sprite.rect.x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
                         pit_sprite.rect.y = FIRST_PIT_POS[1]
                     if isinstance(container, Store):
                         store_sprite = StoreSprite( container, self.pit_sprites )
                         store_sprite.rect.x = BOARD_POSITION[0] + BORDER_GAP[0]
                         store_sprite.rect.y = BOARD_POSITION[1] + BORDER_GAP[1]
-                        
+
+                # player 1 owned the bottom pits and they need to be constructed from LEFT to RIGHT (1 - 6)
                 for container in game.player1.pit_list:
                     if isinstance(container, Pit):
                         pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
