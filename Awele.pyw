@@ -429,7 +429,7 @@ class Game:
                 elif last_pit.seeds == 1:
                     # means that the last seed ended in an empty pit of his own
                     Debug("SPECIAL: Player last seed ended in an empty pit of his own he can put the content of the opposite pit plus de last seed in his Store")
-                    opposite_pit = pit_list_inactive[5 - pit_list_active.id]
+                    opposite_pit = pit_list_inactive[5 - last_pit.id]
                     
                     collected_seeds = opposite_pit.take_seeds() + last_pit.take_seeds()
                     store = pit_list_active[len(pit_list_active)-1]
