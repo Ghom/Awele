@@ -15,7 +15,7 @@ class Sprite(pygame.sprite.Sprite):
             self.myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.counter)
             label = self.myfont.render(text, 1, (255,0,0))
-            self.image.blit(label, self.rect.center)
+            self.image.blit(label, (50, 50))
 
         def update(self):
             rect_save = self.rect
@@ -29,7 +29,7 @@ class Sprite(pygame.sprite.Sprite):
             text = str(self.counter)
             label = self.myfont.render(text, 1, (255,0,0))
                     
-            self.image.blit(label, self.rect.center)
+            self.image.blit(label, (50, 50))
 
 
 Quit = False
@@ -39,7 +39,7 @@ window = pygame.display.set_mode((640, 480))
 render = pygame.sprite.RenderUpdates()
 
 sprite = Sprite(render)
-BUG = False
+BUG = True
 if BUG:
     sprite.rect = (300,300)
 

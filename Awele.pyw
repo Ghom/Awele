@@ -164,7 +164,7 @@ class PitSprite(pygame.sprite.Sprite):
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.pit.seeds)
             label = myfont.render(text, 1, YELLOW)
-            self.image.blit(label, self.rect.center)
+            self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
 
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -180,8 +180,8 @@ class PitSprite(pygame.sprite.Sprite):
 
             myfont = pygame.font.SysFont("monospace", 15)
             text = str(self.pit.seeds)
-            self.image = label = myfont.render(text, 1, YELLOW)
-            self.image.blit(label, self.rect.center)
+            label = myfont.render(text, 1, YELLOW)
+            self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
 
 #------------------------------------------------------------------------------
 class StoreSprite(pygame.sprite.Sprite):
