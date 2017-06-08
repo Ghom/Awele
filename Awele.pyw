@@ -1,4 +1,4 @@
-import pygame
+#import pygame
 from pygame.locals import *
 
 def Debug( *msg ):
