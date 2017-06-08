@@ -32,9 +32,8 @@ class TickEvent(Event):
             self.name = "CPU Tick Event"
 
 class StartGameEvent(Event):
-        def __init__(self, game):
+        def __init__(self):
             self.name = "Start Game Event"
-            self.game = game
 
 class GameStartedEvent(Event):
         def __init__(self, game):
@@ -309,8 +308,9 @@ class ViewManager:
                 if isinstance(event, StartGameEvent):
                         # unregister and DELETE the current view if there is any and start the Game view
                         self.event_manager.unregister_listener(self.current_view)
-                        self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
+                        #need to delete the current view
                         self.current_view = BoardView(self.event_manager)
+                        self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
                 if isinstance(event, PauseGameEvent):
                         # unregister but KEEP the current view if there is any and start the Game view
                         return
@@ -326,30 +326,21 @@ class MenuView:
         def __init__(self, event_manager):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
-
             
+            self.window = pygame.display.get_surface()
+            self.background = pygame.Surface( self.window.get_size() )
+            self.background.fill( (0,0,0) )
+            font = pygame.font.Font(None, 30)
+            text = """Click LEFT MOUSSE to start"""
+            textImg = font.render( text, 1, (255,0,0))
+            self.background.blit( textImg, (0,0) )
+            self.window.blit( self.background, (0,0) )
             pygame.display.flip()
             
         #----------------------------------------------------------------------
         def notify(self, event):
-            if isinstance(event, TickEvent):
-
-                #Draw Everything
-                self.background = pygame.Surface( self.window.get_size() )
-                self.background.fill( (0,0,0) )
-                self.back_sprites.clear( self.window, self.background )
-                self.pit_sprites.clear( self.window, self.background )
-
-                self.back_sprites.update()
-                self.pit_sprites.update()
-
-                dirtyRects1 = self.back_sprites.draw( self.window )
-                dirtyRects2 = self.pit_sprites.draw( self.window )
-                
-                dirtyRects = dirtyRects1 + dirtyRects2
-                pygame.display.update( dirtyRects )
-
-            if isinstance(event, StartButtonClickedEvent):
+            #if isinstance(event, StartButtonClickedEvent):
+            if isinstance(event, LeftClickEvent):
                 self.event_manager.post(StartGameEvent())
                 
 #------------------------------------------------------------------------------
@@ -358,11 +349,7 @@ class BoardView:
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
 
-            pygame.init()
-            #open a 640x480 window
-            self.window = pygame.display.set_mode((640, 480))
-            pygame.display.set_caption( 'Awele' )
-            font = pygame.font.Font(None, 30)
+            self.window = pygame.display.get_surface()
 
             self.back_sprites = pygame.sprite.RenderUpdates()
             self.pit_sprites = pygame.sprite.RenderUpdates()
