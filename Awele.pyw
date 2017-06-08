@@ -369,8 +369,11 @@ class MenuView:
             color = WHITE
             callback = self.StartButtonClickedCB
             self.start_button = PushButton(self.event_manager, text, size, color, callback, self.buttons)
-            self.start_button.rect.x = 200
-            self.start_button.rect.y = 200
+            center = self.window.get_rect().center
+            x = center[0]-size[0]/2
+            y = center[1]-size[1]/2
+            self.start_button.rect.x = x
+            self.start_button.rect.y = y
             self.buttons.draw (self.window)
             
             pygame.display.flip()
