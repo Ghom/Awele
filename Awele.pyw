@@ -18,6 +18,10 @@ class PitClickedEvent(Event):
             self.name = "Pit Clicked Event"
             self.pit = pit
 
+class StartButtonClickedEvent(Event):
+        def __init__(self, pit):
+            self.name = "Start Button Clicked Event"
+
 class SeedDistributionCompleteEvent(Event):
         def __init__(self, container):
             self.name = "Seed Distribution Complete Event"
@@ -27,14 +31,28 @@ class TickEvent(Event):
         def __init__(self):
             self.name = "CPU Tick Event"
 
+class StartGameEvent(Event):
+        def __init__(self, game):
+            self.name = "Start Game Event"
+            self.game = game
+
 class GameStartedEvent(Event):
         def __init__(self, game):
             self.name = "Game Started Event"
             self.game = game
-
-class GameFinishedEvent(Event):
+            
+class PauseGameEvent(Event):
         def __init__(self, game):
-            self.name = "Game Finished Event"
+            self.name = "Pause Game Event"
+            self.game = game
+
+class EndScoreEvent(Event):
+        def __init__(self, game):
+            self.name = "End Score Event"
+   
+class EndGameEvent(Event):
+        def __init__(self, game):
+            self.name = "End Game Event"
             self.game = game
             
 class QuitEvent(Event):
@@ -271,7 +289,69 @@ class TextInfoSprite(pygame.sprite.Sprite):
 
             label = self.myfont.render(self.text, 1, BLACK)
             self.image.blit(label, ( 10, (self.size[1]/2)-10 ))
+
+#------------------------------------------------------------------------------
+class ViewManager:
+        def __init__(self, event_manager):
+                self.event_manager = event_manager
+                self.event_manager.register_listener(self)
+
+                pygame.init()
+                #open a 640x480 window
+                self.window = pygame.display.set_mode((640, 480))
+                pygame.display.set_caption( 'Awele' )
+                font = pygame.font.Font(None, 30)
+                
+                self.current_view = MenuView(event_manager)
+
+        #----------------------------------------------------------------------
+        def notify(self, event):
+                if isinstance(event, StartGameEvent):
+                        # unregister and DELETE the current view if there is any and start the Game view
+                        self.event_manager.unregister_listener(self.current_view)
+                        self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
+                        self.current_view = BoardView(self.event_manager)
+                if isinstance(event, PauseGameEvent):
+                        # unregister but KEEP the current view if there is any and start the Game view
+                        return
+                if isinstance(event, EndGameEvent):
+                        # unregister and DELETE the current view if there is any and start Score view
+                        return
+                if isinstance(event, EndScoreEvent):
+                        # unregister and DELETE the current view if there is any and start Menu view
+                        return
+
+#------------------------------------------------------------------------------
+class MenuView:
+        def __init__(self, event_manager):
+            self.event_manager = event_manager
+            self.event_manager.register_listener( self )
+
             
+            pygame.display.flip()
+            
+        #----------------------------------------------------------------------
+        def notify(self, event):
+            if isinstance(event, TickEvent):
+
+                #Draw Everything
+                self.background = pygame.Surface( self.window.get_size() )
+                self.background.fill( (0,0,0) )
+                self.back_sprites.clear( self.window, self.background )
+                self.pit_sprites.clear( self.window, self.background )
+
+                self.back_sprites.update()
+                self.pit_sprites.update()
+
+                dirtyRects1 = self.back_sprites.draw( self.window )
+                dirtyRects2 = self.pit_sprites.draw( self.window )
+                
+                dirtyRects = dirtyRects1 + dirtyRects2
+                pygame.display.update( dirtyRects )
+
+            if isinstance(event, StartButtonClickedEvent):
+                self.event_manager.post(StartGameEvent())
+                
 #------------------------------------------------------------------------------
 class BoardView:
         def __init__(self, event_manager):
@@ -484,7 +564,7 @@ class Game:
                     #and putting them in the store
                     container.add_seed(remaining_seeds)
 
-            self.event_manager.post(GameFinishedEvent(self))
+            self.event_manager.post(EndGameEvent(self))
             
             if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
                 winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
@@ -548,14 +628,12 @@ def main():
         """..."""
         event_manager = EventManager()
 
-        board_view = BoardView( event_manager )
+        view_manager = ViewManager( event_manager )
 
         # No keyboard needed for now
         #keybd = KeyboardController( event_manager )
         mousse = MousseController ( event_manager ) 
         spinner = CPUSpinnerController( event_manager )
-
-        game = Game(event_manager)
 
         spinner.run()
 
