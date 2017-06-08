@@ -338,7 +338,7 @@ class ViewManager:
                 if isinstance(event, StartGameEvent):
                         # unregister and DELETE the current view if there is any and start the Game view
                         self.event_manager.unregister_listener(self.current_view)
-                        #need to delete the current view
+                        del self.current_view
                         self.current_view = BoardView(self.event_manager) # the Game view needs to be started before the game
                         self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
                         
@@ -349,6 +349,8 @@ class ViewManager:
                 if isinstance(event, EndGameEvent):
                         # unregister and DELETE the current view if there is any and start Score view
                         # need to unregister the game and delete it here
+                        self.event_manager.unregister_listener(self.game)
+                        del self.game
                         self.event_manager.post(EndScoreEvent()) # bypass score view as it doesn't exist yet
                         
                 if isinstance(event, EndScoreEvent):
