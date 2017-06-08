@@ -46,7 +46,7 @@ class PauseGameEvent(Event):
             self.game = game
 
 class EndScoreEvent(Event):
-        def __init__(self, game):
+        def __init__(self):
             self.name = "End Score Event"
    
 class EndGameEvent(Event):
@@ -331,7 +331,7 @@ class ViewManager:
                 pygame.display.set_caption( 'Awele' )
                 font = pygame.font.Font(None, 30)
                 
-                self.current_view = MenuView(event_manager)
+                self.current_view = MenuView(self.event_manager)
 
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -341,15 +341,21 @@ class ViewManager:
                         #need to delete the current view
                         self.current_view = BoardView(self.event_manager) # the Game view needs to be started before the game
                         self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
+                        
                 if isinstance(event, PauseGameEvent):
                         # unregister but KEEP the current view if there is any and start the Game view
                         return
+                    
                 if isinstance(event, EndGameEvent):
                         # unregister and DELETE the current view if there is any and start Score view
-                        return
+                        # need to unregister the game and delete it here
+                        self.event_manager.post(EndScoreEvent()) # bypass score view as it doesn't exist yet
+                        
                 if isinstance(event, EndScoreEvent):
                         # unregister and DELETE the current view if there is any and start Menu view
-                        return
+                        self.event_manager.unregister_listener(self.current_view)
+                        #need to delete the current view
+                        self.current_view = MenuView(self.event_manager) 
 
 #------------------------------------------------------------------------------
 class MenuView:
@@ -507,7 +513,8 @@ class Pit(Container):
             
             self.id = id_nb
             self.next = next_container
-            self.seeds = 6
+            #self.seeds = 6
+            if self.id == 5: self.seeds = 1
 
         def distribute(self):
             if self.seeds == 0:
