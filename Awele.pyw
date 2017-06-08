@@ -19,7 +19,7 @@ class PitClickedEvent(Event):
             self.pit = pit
 
 class StartButtonClickedEvent(Event):
-        def __init__(self, pit):
+        def __init__(self):
             self.name = "Start Button Clicked Event"
 
 class SeedDistributionCompleteEvent(Event):
@@ -307,15 +307,15 @@ class PushButton(pygame.sprite.Sprite):
             pygame.draw.rect(self.image, BLACK, [ (0,0), self.size ], 10)
             self.rect = self.image.get_rect()
 
-            self.myfont = pygame.font.SysFont("monospace", 15)
-            label = self.myfont.render(self.text, 2, BLACK)
+            font_size = 20 
+            self.myfont = pygame.font.SysFont("monospace", font_size, True)
+            label = self.myfont.render(self.text, 1, BLACK)
             text_size = len(self.text)
-            self.image.blit(label, ( (self.size[0]/2)-(text_size/2), self.size[1]/2 ))
+            self.image.blit(label, ( (self.size[0]/2)-(text_size*(font_size+3)/2)/2, (self.size[1]/2)-(font_size/2) ))
 
         #----------------------------------------------------------------------
         def notify(self, event):
             if isinstance(event, LeftClickEvent):
-                Debug(event.pos,self.rect)
                 if self.rect.collidepoint(event.pos):
                     self.callback()
                     
@@ -351,8 +351,6 @@ class ViewManager:
                         # unregister and DELETE the current view if there is any and start Menu view
                         return
 
-def StartButtonClickedCB():
-    EventManager.post(StartButtonClickedEvent())
 #------------------------------------------------------------------------------
 class MenuView:
         def __init__(self, event_manager):
@@ -360,29 +358,32 @@ class MenuView:
             self.event_manager.register_listener( self )
             
             self.window = pygame.display.get_surface()
-            self.background = pygame.Surface( self.window.get_size() )
-            self.background.fill( (0,0,0) )
-            font = pygame.font.Font(None, 30)
-            text = """Click LEFT MOUSSE to start"""
-            textImg = font.render( text, 1, (255,0,0))
-            self.background.blit( textImg, (0,0) )
-            self.window.blit( self.background, (0,0) )
-
+            self.back_sprites = pygame.sprite.RenderUpdates()
+            background = BackgroundSprite( self.back_sprites )
+            background.rect = (0, 0)
+            self.back_sprites.draw (self.window)
             
+            self.buttons = pygame.sprite.RenderUpdates()
             text = "START"
-            size = (100,50)
+            size = (200,70)
             color = WHITE
-            callback = StartButtonClickedCB
-            start_button = PushButton(self.event_manager, text, size, color, callback)
-            self.window.blit( start_button.image, (200,200) )
+            callback = self.StartButtonClickedCB
+            self.start_button = PushButton(self.event_manager, text, size, color, callback, self.buttons)
+            self.start_button.rect.x = 200
+            self.start_button.rect.y = 200
+            self.buttons.draw (self.window)
             
             pygame.display.flip()
+
+        #----------------------------------------------------------------------
+        def StartButtonClickedCB(self):
+            self.event_manager.post(StartButtonClickedEvent())
             
         #----------------------------------------------------------------------
         def notify(self, event):
             if isinstance(event, StartButtonClickedEvent):
-            #if isinstance(event, LeftClickEvent):
                 self.event_manager.post(StartGameEvent())
+
                 
 #------------------------------------------------------------------------------
 class BoardView:
