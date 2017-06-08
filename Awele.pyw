@@ -175,7 +175,7 @@ YELLOW = (255, 255,   0)
 
 #-------------------------------------------------------------------------------
 class PitSprite(pygame.sprite.Sprite):
-        def __init__(self, event_manager, pit, group=None):
+        def __init__(self, event_manager, pit, group=()):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
             self.pit = pit
@@ -213,7 +213,7 @@ class PitSprite(pygame.sprite.Sprite):
 
 #------------------------------------------------------------------------------
 class StoreSprite(pygame.sprite.Sprite):
-        def __init__(self, store, group=None):
+        def __init__(self, store, group=()):
             pygame.sprite.Sprite.__init__(self, group)
             #self.image = pygame.image.load(PATH_STORE_SKIN).convert()
             self.store = store
@@ -241,13 +241,13 @@ class StoreSprite(pygame.sprite.Sprite):
             
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):
-        def __init__(self, group=None):
+        def __init__(self, group=()):
             pygame.sprite.Sprite.__init__(self, group)
             self.image = pygame.image.load(PATH_BACKGROUND_SKIN).convert()
             
 #------------------------------------------------------------------------------
 class BoardSprite(pygame.sprite.Sprite):
-        def __init__(self, group=None):
+        def __init__(self, group=()):
             pygame.sprite.Sprite.__init__(self, group)
             self.image = pygame.image.load(PATH_BOARD_SKIN).convert()
 
@@ -289,6 +289,36 @@ class TextInfoSprite(pygame.sprite.Sprite):
             label = self.myfont.render(self.text, 1, BLACK)
             self.image.blit(label, ( 10, (self.size[1]/2)-10 ))
 
+#-------------------------------------------------------------------------------
+class PushButton(pygame.sprite.Sprite):
+        def __init__(self, event_manager, text, size, color, callback, group=()):
+            self.event_manager = event_manager
+            self.event_manager.register_listener( self )
+
+            self.text = text
+            self.size = size
+            self.color = color
+            self.callback = callback
+            
+            pygame.sprite.Sprite.__init__(self, group)
+
+            self.image = pygame.Surface(self.size).convert()
+            self.image.fill(self.color)
+            pygame.draw.rect(self.image, BLACK, [ (0,0), self.size ], 10)
+            self.rect = self.image.get_rect()
+
+            self.myfont = pygame.font.SysFont("monospace", 15)
+            label = self.myfont.render(self.text, 2, BLACK)
+            text_size = len(self.text)
+            self.image.blit(label, ( (self.size[0]/2)-(text_size/2), self.size[1]/2 ))
+
+        #----------------------------------------------------------------------
+        def notify(self, event):
+            if isinstance(event, LeftClickEvent):
+                Debug(event.pos,self.rect)
+                if self.rect.collidepoint(event.pos):
+                    self.callback()
+                    
 #------------------------------------------------------------------------------
 class ViewManager:
         def __init__(self, event_manager):
@@ -309,7 +339,7 @@ class ViewManager:
                         # unregister and DELETE the current view if there is any and start the Game view
                         self.event_manager.unregister_listener(self.current_view)
                         #need to delete the current view
-                        self.current_view = BoardView(self.event_manager)
+                        self.current_view = BoardView(self.event_manager) # the Game view needs to be started before the game
                         self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
                 if isinstance(event, PauseGameEvent):
                         # unregister but KEEP the current view if there is any and start the Game view
@@ -321,6 +351,8 @@ class ViewManager:
                         # unregister and DELETE the current view if there is any and start Menu view
                         return
 
+def StartButtonClickedCB():
+    EventManager.post(StartButtonClickedEvent())
 #------------------------------------------------------------------------------
 class MenuView:
         def __init__(self, event_manager):
@@ -335,12 +367,21 @@ class MenuView:
             textImg = font.render( text, 1, (255,0,0))
             self.background.blit( textImg, (0,0) )
             self.window.blit( self.background, (0,0) )
+
+            
+            text = "START"
+            size = (100,50)
+            color = WHITE
+            callback = StartButtonClickedCB
+            start_button = PushButton(self.event_manager, text, size, color, callback)
+            self.window.blit( start_button.image, (200,200) )
+            
             pygame.display.flip()
             
         #----------------------------------------------------------------------
         def notify(self, event):
-            #if isinstance(event, StartButtonClickedEvent):
-            if isinstance(event, LeftClickEvent):
+            if isinstance(event, StartButtonClickedEvent):
+            #if isinstance(event, LeftClickEvent):
                 self.event_manager.post(StartGameEvent())
                 
 #------------------------------------------------------------------------------
