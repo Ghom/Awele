@@ -613,14 +613,15 @@ class Pit(Container):
             
             self.id = id_nb
             self.next = next_container
-            self.seeds = 6
-
+            #self.seeds = 6
+            if self.id == 0: self.seeds = 1
+            
         def distribute(self):
             if self.seeds == 0:
                 Debug("Can't distribute this pit is empty")
                 return False
                 #need to create exeption for that
-            
+                
             seeds = self.seeds
             self.seeds = 0
             Debug("Distribute",seeds,"from pit",self.id)
@@ -714,19 +715,6 @@ class Game:
             
             pit_list_active = self.active_player.pit_list
             pit_list_inactive = self.inactive_player.pit_list
-
-            # Check for the end of Game condition true if one of the player have no seeds in his pit
-            # As the current player is only allowed to move seeds from his side and we assume that
-            # This test will be performed after each turn we only need to chack the pits of the active player
-            for container in pit_list_active:
-                if isinstance(container, Pit) and container.seeds != 0:
-                    break
-                    # Player stil have seeds this is not the end of game
-                if isinstance(container, Store):
-                    # All the pits are empty (because we didn't break on previous condition)
-                    # So this is the end of the Game the other player get all the seeds from his pits and put them in his Store
-                    self.end_game()
-                    return
                 
             if last_pit in pit_list_active:
                 if isinstance(last_pit, Store):
@@ -743,6 +731,19 @@ class Game:
                     collected_seeds = opposite_pit.take_seeds() + last_pit.take_seeds()
                     store = pit_list_active[len(pit_list_active)-1]
                     store.add_seed(collected_seeds)
+
+            # Check for the end of Game condition true if one of the player have no seeds in his pit
+            # As the current player is only allowed to move seeds from his side and we assume that
+            # This test will be performed after each turn we only need to chack the pits of the active player
+            for container in pit_list_active:
+                if isinstance(container, Pit) and container.seeds != 0:
+                    break
+                    # Player stil have seeds this is not the end of game
+                if isinstance(container, Store):
+                    # All the pits are empty (because we didn't break on previous condition)
+                    # So this is the end of the Game the other player get all the seeds from his pits and put them in his Store
+                    self.end_game()
+                    return
 
         #----------------------------------------------------------------------
         def notify(self, event):
