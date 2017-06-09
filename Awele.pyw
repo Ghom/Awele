@@ -613,8 +613,7 @@ class Pit(Container):
             
             self.id = id_nb
             self.next = next_container
-            #self.seeds = 6
-            if self.id == 0: self.seeds = 1
+            self.seeds = 6
             
         def distribute(self):
             if self.seeds == 0:
