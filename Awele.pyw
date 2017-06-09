@@ -356,7 +356,7 @@ class ViewManager:
                 if isinstance(event, EndScoreEvent):
                         # unregister and DELETE the current view if there is any and start Menu view
                         self.event_manager.unregister_listener(self.current_view)
-                        #need to delete the current view
+                        del self.current_view
                         self.current_view = MenuView(self.event_manager) 
 
 #------------------------------------------------------------------------------
@@ -392,9 +392,14 @@ class MenuView:
             
         #----------------------------------------------------------------------
         def notify(self, event):
+            if isinstance(event, TickEvent):
+                # refresh page
+                self.back_sprites.draw (self.window)
+                self.buttons.draw (self.window)
+                pygame.display.flip()
+                
             if isinstance(event, StartButtonClickedEvent):
                 self.event_manager.post(StartGameEvent())
-
                 
 #------------------------------------------------------------------------------
 class BoardView:
@@ -604,14 +609,14 @@ class Game:
                 else:
                     #and putting them in the store
                     container.add_seed(remaining_seeds)
-
-            self.event_manager.post(EndGameEvent(self))
             
             if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
                 winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
                 self.event_manager.post(TextInfoEvent("The game is over. "+winner.name+" won with "+str(winner.pit_list[6].seeds)+" seeds"))
             else:
                 self.event_manager.post(TextInfoEvent("The game is over. No winner this is a draw"))
+
+            self.event_manager.post(EndGameEvent(self))
             
         #---------------------------------------------------------------------
         def check_special_actions(self, last_pit):
