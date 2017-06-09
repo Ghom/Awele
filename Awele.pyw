@@ -613,8 +613,7 @@ class Pit(Container):
             
             self.id = id_nb
             self.next = next_container
-            #self.seeds = 6
-            if self.id == 5: self.seeds = 1
+            self.seeds = 6
 
         def distribute(self):
             if self.seeds == 0:
@@ -704,7 +703,6 @@ class Game:
                     #and putting them in the store
                     container.add_seed(remaining_seeds)
 
-            self.player1.pit_list[6].seeds = 10
             if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
                 self.winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
 
