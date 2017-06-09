@@ -22,6 +22,10 @@ class StartButtonClickedEvent(Event):
         def __init__(self):
             self.name = "Start Button Clicked Event"
 
+class MenuButtonClickedEvent(Event):
+        def __init__(self):
+            self.name = "Menu Button Clicked Event"
+            
 class SeedDistributionCompleteEvent(Event):
         def __init__(self, container):
             self.name = "Seed Distribution Complete Event"
@@ -289,6 +293,25 @@ class TextInfoSprite(pygame.sprite.Sprite):
             label = self.myfont.render(self.text, 1, BLACK)
             self.image.blit(label, ( 10, (self.size[1]/2)-10 ))
 
+#------------------------------------------------------------------------------
+class TextSprite(pygame.sprite.Sprite):
+        def __init__(self, text, font_size=15, bold=False, group=()):
+            pygame.sprite.Sprite.__init__(self, group)
+            self.text = text
+            self.font_size = font_size
+            self.size = (len(text)*(font_size/2+3), font_size)
+            self.bold = bold
+            
+            # Draw a transparent rectangle area
+            self.image = pygame.Surface(self.size).convert_alpha()
+            self.image.fill((0,0,0,0))
+            #pygame.draw.rect(self.image, RED, [ (0,0), self.size ], 1) #Debug surface
+            self.rect = self.image.get_rect()
+
+            self.myfont = pygame.font.SysFont("monospace", font_size, self.bold)
+            label = self.myfont.render(self.text, 1, BLACK)
+            self.image.blit(label, (0,0))
+
 #-------------------------------------------------------------------------------
 class PushButton(pygame.sprite.Sprite):
         def __init__(self, event_manager, text, size, color, callback, group=()):
@@ -348,14 +371,13 @@ class ViewManager:
                     
                 if isinstance(event, EndGameEvent):
                         # unregister and DELETE the current view if there is any and start Score view
-                        # need to unregister the game and delete it here
-                        self.event_manager.unregister_listener(self.game)
-                        del self.game
-                        self.event_manager.post(EndScoreEvent()) # bypass score view as it doesn't exist yet
+                        self.current_view = ScoreView(self.event_manager, self.game)
                         
                 if isinstance(event, EndScoreEvent):
                         # unregister and DELETE the current view if there is any and start Menu view
+                        self.event_manager.unregister_listener(self.game)
                         self.event_manager.unregister_listener(self.current_view)
+                        del self.game
                         del self.current_view
                         self.current_view = MenuView(self.event_manager) 
 
@@ -474,7 +496,78 @@ class BoardView:
 
             if isinstance(event, TextInfoEvent):
                 self.text_info_sprite.update(event.text, event.append)
-        
+
+#------------------------------------------------------------------------------
+class ScoreView:
+        def __init__(self, event_manager, game):
+            self.event_manager = event_manager
+            self.event_manager.register_listener( self )
+            self.game = game
+            
+            self.window = pygame.display.get_surface()
+            self.window_rect = self.window.get_rect()
+            
+            self.back_sprites = pygame.sprite.RenderUpdates()
+            background = BackgroundSprite( self.back_sprites )
+            background.rect = (0, 0)
+            self.back_sprites.draw (self.window)
+
+            self.text_elements = pygame.sprite.RenderUpdates()
+            
+            self.title = TextSprite("SCORES", 30, True, self.text_elements)
+            self.title.rect.x = self.window_rect.center[0] - self.title.rect.size[0]/2
+            self.title.rect.y = 25
+            
+            text_p1 = self.game.player1.name+" ended with "+ str(self.game.player1.pit_list[6].seeds)+ " seeds"
+            self.title = TextSprite(text_p1, 20, True, self.text_elements)
+            self.title.rect.x = 10
+            self.title.rect.y = 125
+
+            text_p2 = self.game.player2.name+" ended with "+ str(self.game.player2.pit_list[6].seeds)+ " seeds"
+            self.title = TextSprite(text_p2, 20, True, self.text_elements)
+            self.title.rect.x = 10
+            self.title.rect.y = 175
+
+            if self.game.winner != None:
+                text_winner = self.game.winner.name+" won the game with "+ str(self.game.winner.pit_list[6].seeds)+ " seeds. Congratulation!"
+            else:
+                text_winner = "This is a draw, well played it was a tight battle"
+            self.title = TextSprite(text_winner, 20, True, self.text_elements)
+            self.title.rect.x = 10
+            self.title.rect.y = 225
+
+            
+            self.text_elements.draw (self.window)
+            
+            self.buttons = pygame.sprite.RenderUpdates()
+            text = "MENU"
+            size = (200,70)
+            color = WHITE
+            callback = self.MenuButtonClickedCB
+            self.start_button = PushButton(self.event_manager, text, size, color, callback, self.buttons)
+
+            self.start_button.rect.x = self.window_rect.center[0]-size[0]/2
+            self.start_button.rect.y = self.window_rect.size[1]-2*size[1]
+            self.buttons.draw (self.window)
+            
+            pygame.display.flip()
+
+        #----------------------------------------------------------------------
+        def MenuButtonClickedCB(self):
+            self.event_manager.post(MenuButtonClickedEvent())
+            
+        #----------------------------------------------------------------------
+        def notify(self, event):
+            if isinstance(event, TickEvent):
+                # refresh page
+                self.back_sprites.draw (self.window)
+                self.text_elements.draw (self.window)
+                self.buttons.draw (self.window)
+                pygame.display.flip()
+                
+            if isinstance(event, MenuButtonClickedEvent):
+                self.event_manager.post(EndScoreEvent())
+                
 #------------------------------------------------------------------------------
 class Container:
         """ Abstract class that represent board container such as Pits and Stores """
@@ -583,6 +676,7 @@ class Game:
             self.player2 = Player("Player 2", p2_pits)
             self.active_player = self.player1
             self.inactive_player = self.player2
+            self.winner = None
 
             self.play_again = False
 
@@ -609,12 +703,10 @@ class Game:
                 else:
                     #and putting them in the store
                     container.add_seed(remaining_seeds)
-            
+
+            self.player1.pit_list[6].seeds = 10
             if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
-                winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
-                self.event_manager.post(TextInfoEvent("The game is over. "+winner.name+" won with "+str(winner.pit_list[6].seeds)+" seeds"))
-            else:
-                self.event_manager.post(TextInfoEvent("The game is over. No winner this is a draw"))
+                self.winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
 
             self.event_manager.post(EndGameEvent(self))
             
