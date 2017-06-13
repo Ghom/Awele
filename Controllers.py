@@ -1,3 +1,10 @@
+"""
+File name: Controllers.py 
+Description: This file describe the different controllers availlable to catch
+the events comming from both the user and the CPU.
+Autor: Guillaume Paniagua
+Creation date: 13/06/2017
+"""
 import pygame
 from pygame.locals import *
 
@@ -7,6 +14,8 @@ from Global import Debug
 
 #------------------------------------------------------------------------------
 class MousseController:
+""" The mouse controller handle events coming from a mouse action and emmit 
+ an event accordingly through the event manager """
     def __init__(self, event_manager):
         self.event_manager = event_manager
         self.event_manager.register_listener( self )

@@ -1,3 +1,12 @@
+"""
+File name: EventManager.py 
+Description: The Event Manager is the Subject part of the MVC architecture.
+The Observers(Views, Models and Controllers) can register themeself in order to receive the stream of broadcasted event.
+This file also defines all the event that can be posted by the EventManager.
+Autor: Guillaume Paniagua
+Creation date: 13/06/2017
+"""
+
 import pygame
 from pygame.locals import *
 
@@ -5,10 +14,6 @@ from Global import Debug
 
 #TODO: Remove Event suffixe from the events names
 
-""" The Event Manager is the Subject part of the MVC architecture.
-The Observers(Views, Models and Controllers) can register themeself in order to receive the stream of broadcasted event.
-This file also defines all the event that can be posted by the EventManager.
-"""
 #------------------------------------------------------------------------------
 class EventManager:
 	"""this object is responsible for coordinating most communication

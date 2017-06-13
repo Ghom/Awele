@@ -1,3 +1,12 @@
+"""
+File name: Game.py 
+Description: This file contain the game model used to play the African board game called Awele.
+This the game receive event comming from the view (through the EventManager and emit events using the same process
+to communicate with the outside world. 
+Autor: Guillaume Paniagua
+Creation date: 13/06/2017
+"""
+
 from EventManager import *
 from Global import Debug
 

@@ -1,3 +1,10 @@
+"""
+File name: Global.py 
+Description: This file contain all the necessary global definition used in the different part of the code
+Autor: Guillaume Paniagua
+Creation date: 13/06/2017
+"""
+
 #-------------------------------------------------------------------------------
 PATH_PIT_SKIN = "data/images/pit.png"
 PATH_STORE_SKIN = "data/images/store.png"
