@@ -2,7 +2,7 @@
 File name: Controllers.py 
 Description: This file describe the different controllers availlable to catch
 the events comming from both the user and the CPU.
-Autor: Guillaume Paniagua
+Author: Guillaume Paniagua
 Creation date: 13/06/2017
 """
 import pygame

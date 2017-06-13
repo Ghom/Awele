@@ -1,7 +1,7 @@
 """
 File name: Global.py 
 Description: This file contain all the necessary global definition used in the different part of the code
-Autor: Guillaume Paniagua
+Author: Guillaume Paniagua
 Creation date: 13/06/2017
 """
 
