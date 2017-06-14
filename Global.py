@@ -6,11 +6,13 @@ Creation date: 13/06/2017
 """
 
 #-------------------------------------------------------------------------------
-# The images path used in the different views 
-PATH_PIT_SKIN = "data/images/pit.png"
-PATH_STORE_SKIN = "data/images/store.png"
-PATH_BACKGROUND_SKIN = "data/images/background.png"
-PATH_BOARD_SKIN = "data/images/board.png"
+# The images path used in the different views
+import os
+BASE_PATH = os.path.dirname(os.path.realpath(__file__))
+PATH_PIT_SKIN = BASE_PATH+"/data/images/pit.png"
+PATH_STORE_SKIN = BASE_PATH+"/data/images/store.png"
+PATH_BACKGROUND_SKIN = BASE_PATH+"/data/images/background.png"
+PATH_BOARD_SKIN = BASE_PATH+"/data/images/board.png"
 
 #--------------------------------------------------------------------------------
 # Game view position and size reference
