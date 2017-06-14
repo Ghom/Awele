@@ -266,9 +266,7 @@ class Store(Container):
             def __init__(self, event_manager, next_container):
                 Container.__init__(self)
                 self.event_manager = event_manager
-                # No need to register as a listener because we are only posting event from Store object
-                #self.event_manager.register_listener( self )
-
+                
                 self.next = next_container
 
 #------------------------------------------------------------------------------
