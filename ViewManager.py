@@ -1,3 +1,12 @@
+"""
+File name: ViewManager.py 
+Description: This file contains the different view of the game and a class that switch from one to another (ViewManager)
+This file also contains the sprites definition used to construct the different views.
+Author: Guillaume Paniagua
+Creation date: 13/06/2017
+"""
+
+
 import pygame
 from pygame.locals import *
 
