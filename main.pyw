@@ -23,6 +23,7 @@ def main():
         mousse = MousseController ( event_manager ) 
         spinner = CPUSpinnerController( event_manager )
 
+        # this will trigger the main loop
         spinner.run()
 
 if __name__ == "__main__":
