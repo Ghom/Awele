@@ -16,137 +16,157 @@ from Global import Debug
 
 #------------------------------------------------------------------------------
 class EventManager:
-	"""this object is responsible for coordinating most communication
-	between the Model, View, and Controller."""
-	def __init__(self):
-		from weakref import WeakKeyDictionary
-		self.listeners = WeakKeyDictionary()
-		self.event_queue= []
+        """EventManager is responsible for coordinating most communication
+        between the Model, View, and Controller. His role is to keep track
+        of the different observer and notify them when someone post an event
+        """
+        def __init__(self):
+            from weakref import WeakKeyDictionary
+            self.listeners = WeakKeyDictionary()
+            self.event_queue= []
 
-	#----------------------------------------------------------------------
-	def register_listener( self, listener ):
-		self.listeners[ listener ] = 1
+        #----------------------------------------------------------------------
+        def register_listener( self, listener ):
+            self.listeners[ listener ] = 1
 
-	#----------------------------------------------------------------------
-	def unregister_listener( self, listener ):
-		if listener in self.listeners:
-			del self.listeners[ listener ]
-		
-	#----------------------------------------------------------------------
-	def post( self, event ):
-		if not isinstance(event, TickEvent):
-			Debug( "     Message: " + event.name )
-		for listener in list(self.listeners):
-			#NOTE: If the weakref has died, it will be 
-			#automatically removed, so we don't have 
-			#to worry about it.
-			listener.notify( event )
+        #----------------------------------------------------------------------
+        def unregister_listener( self, listener ):
+            if listener in self.listeners:
+                del self.listeners[ listener ]
+            
+        #----------------------------------------------------------------------
+        def post( self, event ):
+            if not isinstance(event, TickEvent):
+                Debug( "     Message: " + event.name )
+            for listener in list(self.listeners):
+                #NOTE: If the weakref has died, it will be 
+                #automatically removed, so we don't have 
+                #to worry about it.
+                listener.notify( event )
 
 #------------------------------------------------------------------------------
-""" Generic Event used to construct all the other Events signal """
-
 class Event:
+        """Event is Generic event used to construct all the other Events signal
+        """
         def __init__(self):
             self.name = "Generic Event"
 
 #------------------------------------------------------------------------------
-""" Controllers related events """
+# Controllers related events
 
 class LeftClickEvent(Event):
-        # from mousse controller
-        # emmited whenever the user left click on the screen surface
+        """LeftClickEvent is emmited from mousse controller
+        whenever the user left click on the screen surface
+        """
         def __init__(self, pos):
             self.name = "Left Click Event"
             self.pos = pos
 
 class QuitEvent(Event):
-        # from mousse controller
-        # emitted whe user click default quit button part of window
+        """QuitEvent is emmited from mousse controller
+        when user click default quit button part of window
+        """
         def __init__(self):
             self.name = "Quit Event"
 
 class TickEvent(Event):
-        # from CPU controller
-        # emitted by the main loop as fast as the CPU can manage
+        """TickEvent is emmited from CPUSpinnerController
+        as fast as the CPU can manage, mainly used to refresh
+        the views and scan for incoming user events
+        """
         def __init__(self):
             self.name = "CPU Tick Event"
 
 #------------------------------------------------------------------------------
-""" Sprites related events """
+# Sprites related events
 
 class PitClickedEvent(Event):
-        # from the pit sprite on the game view
-        # emmited when user left click on pit
+        """PitClickedEvent s emmited from the pit sprites on the game view
+        when user left click on a pit sprite
+        """
         def __init__(self, pit):
             self.name = "Pit Clicked Event"
             self.pit = pit
 
 class StartButtonClickedEvent(Event):
-        # from the start button on the menu view
-        # emmited when user left click on button
+        """StartButtonClickedEvent is emmited from the start button 
+        on the menu view when the user left click on the button
+        """
         def __init__(self):
             self.name = "Start Button Clicked Event"
 
 class MenuButtonClickedEvent(Event):
-        # from the menu button on the score view
-        # emmited when user left click on button
+        """MenuButtonClickedEvent is emmited from the menu button
+        on the score view when the user left click on button
+        """
         def __init__(self):
             self.name = "Menu Button Clicked Event"
 
 #------------------------------------------------------------------------------
-""" Views related events """
+# Views related events
 
 class StartGameEvent(Event):
-        # from menu view
-        # emitted when the user click the start button
+        """StartGameEvent is emmited from the menu view
+        when the user left click on the start button
+        """
         def __init__(self):
             self.name = "Start Game Event"
             
 class PauseGameEvent(Event):
-        # This will come from the game view
-        # (not used for now) 
+        """(not used for now)PauseGameEvent This will come from the game view
+        """
         def __init__(self, game):
             self.name = "Pause Game Event"
             self.game = game
 
 class EndScoreEvent(Event):
-        # from score view
-        # emitted when the user click the menu button
+        """EndScoreEvent is emitted from the score view
+        when the user left click on the menu button
+        """
         def __init__(self):
             self.name = "End Score Event"
 
 #------------------------------------------------------------------------------
-""" Game related events """
+# Game related events
 
 class SeedDistributionCompleteEvent(Event):
-        # from container (pit/store)
-        # emitted when the last seed has been distributed
-        # container: reference the container where the last seed ended
+        """SeedDistributionCompleteEvent is emmited from a container, a pit or a store,
+        when the last seed has been distributed. This is part of the distribution process
+        Attributes:
+        container -- reference the container where the last seed ended
+        """
         def __init__(self, container):
             self.name = "Seed Distribution Complete Event"
             self.container = container
 
 class GameStartedEvent(Event):
-        # from the game 
-        # emmited when the game has finished to initialise
-        # game: reference the the game instance
+        """GameStartedEvent is emmited from the game 
+        when it completed his initialisation
+        Attributes:
+        game -- reference the the game instance
+        """
         def __init__(self, game):
             self.name = "Game Started Event"
             self.game = game
 
 class EndGameEvent(Event):
-        # from the game 
-        # emmited when the game is finished
-        # game: reference the the game instance
+        """EndGameEvent is emmited from the game 
+        when it finish
+        Attributes:
+        game -- reference the the game instance
+        """
         def __init__(self, game):
             self.name = "End Game Event"
             self.game = game
             
 class TextInfoEvent(Event):
-        # from the game
-        # emmited whenever the text info box need to be updated on the game view
-        # text: the text to display
-        # append: boolean indicating if the text needs to be appended to the previous text (if false the previous text is cleared)
+        """TextInfoEvent is emmited from the game
+        whenever the text info box need to be updated on the game view
+        Attributes:
+        text -- the text to display
+        append -- boolean indicating if the text needs to be appended to the previous text, 
+        if false the previous text is cleared (default False)
+        """
         def __init__(self, text, append=False):
             self.name = "Text info Event"
             self.text = text
