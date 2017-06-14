@@ -30,7 +30,7 @@ class MousseController:
                 if event.type == QUIT:
                         ev = QuitEvent()
                         
-                if event.type == MOUSEBUTTONDOWN: 
+                if event.type == MOUSEBUTTONUP: 
                     if event.button == 1:
                         ev = LeftClickEvent( event.pos )
 
