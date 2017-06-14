@@ -6,7 +6,6 @@ Author: Guillaume Paniagua
 Creation date: 13/06/2017
 """
 
-
 import pygame
 from pygame.locals import *
 
@@ -17,6 +16,9 @@ from Global import *
 
 #------------------------------------------------------------------------------
 class ViewManager:
+        """ViewManager class is starting and stoping the different views according to th incoming events.
+        This class also initialising and setting the pygame window.
+        """
         def __init__(self, event_manager):
                 self.event_manager = event_manager
                 self.event_manager.register_listener(self)
@@ -28,30 +30,34 @@ class ViewManager:
                 font = pygame.font.Font(None, 30)
                 
                 self.current_view = MenuView(self.event_manager)
-
+                
+        #----------------------------------------------------------------------
+        def purge(self, object):
+                """Purge method unregister the object from the EventManager and delete it"""
+                self.event_manager.unregister_listener(object)
+                del object
+                
         #----------------------------------------------------------------------
         def notify(self, event):
                 if isinstance(event, StartGameEvent):
                         # unregister and DELETE the current view if there is any and start the Game view
-                        self.event_manager.unregister_listener(self.current_view)
-                        del self.current_view
+                        self.purge(self.current_view)
                         self.current_view = BoardView(self.event_manager) # the Game view needs to be started before the game
                         self.game = Game(self.event_manager) # Maybe not the best idea to start the game in the view manager
                         
                 if isinstance(event, PauseGameEvent):
                         # unregister but KEEP the current view if there is any and start the Game view
-                        return
+                        self.purge(self.current_view)
                     
                 if isinstance(event, EndGameEvent):
                         # unregister and DELETE the current view if there is any and start Score view
+                        self.purge(self.current_view)
                         self.current_view = ScoreView(self.event_manager, self.game)
                         
                 if isinstance(event, EndScoreEvent):
                         # unregister and DELETE the current view if there is any and start Menu view
-                        self.event_manager.unregister_listener(self.game)
-                        self.event_manager.unregister_listener(self.current_view)
-                        del self.game
-                        del self.current_view
+                        self.purge(self.game)
+                        self.purge(self.current_view)
                         self.current_view = MenuView(self.event_manager) 
 
 #------------------------------------------------------------------------------
