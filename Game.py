@@ -148,7 +148,9 @@ class Game:
 
         #----------------------------------------------------------------------
         def pit_clicked(self, pit):
-                """pit_clicked
+                """pit_clicked is a game method executed when a PitClickedEvent
+				occurs. The method will execute the right action depending on
+				the pit that has been clicked and the active player.
                 """
                 # If a pit is clicked check if that pit belong to the active player ...
                 if pit in self.active_player.pit_list:
@@ -172,7 +174,9 @@ class Game:
                 
 #------------------------------------------------------------------------------
 class Container:
-        """ Abstract class that represent board container such as Pits and Stores """
+        """Container is Abstract class that represent the board container 
+		common feature such as a Pit or a Store 
+		"""
         def __init__(self):
             self.event_manager = None
             self.next = None
@@ -180,12 +184,24 @@ class Container:
 
         #----------------------------------------------------------------------
         def pass_seeds(self, seeds):
-            self.seeds += 1
-            seeds -= 1
+            """pass_seeds method is used to get on seed from the incoming
+            seeds and pass the rest to the next container.
+            This method is called from container to container going through 
+            the circular linked list until there is no seed left. This represent the player's hand 
+            distributing the seeds around the board.
+            """
+            # This method assume that the incoming seeds parameter is always more than 0
+            # This assumption can be made because the previous container would have
+            # check the remaining seed number before passing to the next container
+            self.add_seed(1) # get one seed ...
+            seeds -= 1 # ... from the seeds passing around
+
             if isinstance(self, Pit):
                 Debug("Pit",self.id,"now contain",self.seeds,"seeds")
             else:
                 Debug("Store now contain",self.seeds,"seeds")
+
+            # here we check that there is still seeds to pass$ around before passing
             if seeds > 0:
                 self.next.pass_seeds(seeds)
             else:
@@ -193,57 +209,73 @@ class Container:
 
         #----------------------------------------------------------------------
         def add_seed(self, amount):
+            """add_seed add an amount of seed to the container
+            parameters:
+            amount -- integer number of seeds that need to be added to the container
+            """
             self.seeds += amount
             return self.seeds 
 
         #----------------------------------------------------------------------
         def remove_seed(self, amount):
+            """remove_seed remove an amount of seed to the container
+            parameters:
+            amount -- integer number of seeds that need to be removed from the container
+            """
             self.seeds -= amount
             return self.seeds
 
         #----------------------------------------------------------------------
         def take_seeds(self):
+            """take_seeds remove all seeds in the container and return that number
+            of seeds that was in the container
+            return -- integer amount of seeds that was present in the container
+            (represent the player's hand taking all the seeds)
+            """
             amount = self.seeds
             self.seeds = 0
             return amount
             
 #------------------------------------------------------------------------------
 class Pit(Container):
-        def __init__(self, event_manager, id_nb, next_container):
-            Container.__init__(self)
-            self.event_manager = event_manager
-            
-            self.id = id_nb
-            self.next = next_container
-            self.seeds = 6
-            
-        def distribute(self):
-            if self.seeds == 0:
-                Debug("Can't distribute this pit is empty")
-                return False
-                #need to create exeption for that
-                
-            seeds = self.seeds
-            self.seeds = 0
-            Debug("Distribute",seeds,"from pit",self.id)
-            Debug("Pit",self.id,"now contain",self.seeds,"seeds")
-            self.next.pass_seeds(seeds)
-            return True
+            """Pit class is a subclass of Container and describe the specificities of pits"""
+            def __init__(self, event_manager, id_nb, next_container):
+                Container.__init__(self)
+                self.event_manager = event_manager
+
+                self.id = id_nb
+                self.next = next_container
+                self.seeds = 6
+
+            def distribute(self):
+                """distribute method is the starting point of passing the seeds around to other containers"""
+                if self.seeds == 0:
+                    Debug("Can't distribute this pit is empty")
+                    return False
+                    #TODO: need to create exeption for that
+                    
+                seeds = self.take_seeds()
+                Debug("Distribute",seeds,"from pit",self.id)
+                Debug("Pit",self.id,"now contain",self.seeds,"seeds")
+                self.next.pass_seeds(seeds)
+                return True
                         
 #------------------------------------------------------------------------------
 class Store(Container):
-        def __init__(self, event_manager, next_container):
-            Container.__init__(self)
-            self.event_manager = event_manager
-            # No need to register as a listener because we are only posting event from Store object
-            #self.event_manager.register_listener( self )
+            """Store class is a subclass of Container and describe the specificities of stores"""
+            def __init__(self, event_manager, next_container):
+                Container.__init__(self)
+                self.event_manager = event_manager
+                # No need to register as a listener because we are only posting event from Store object
+                #self.event_manager.register_listener( self )
 
-            self.next = next_container
+                self.next = next_container
 
 #------------------------------------------------------------------------------
 class Player:
-        def __init__(self, name, pit_list=None):
-            self.name = name
-            self.score = 0
-            self.pit_list = pit_list
+            """Player class hold the player data"""
+            def __init__(self, name, pit_list=None):
+                self.name = name
+                self.score = 0
+                self.pit_list = pit_list
 
