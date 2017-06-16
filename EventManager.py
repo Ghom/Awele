@@ -119,6 +119,13 @@ class PauseGameEvent(Event):
             self.name = "Pause Game Event"
             self.game = game
 
+class EndPauseGameEvent(Event):
+        """(not used for now)EndPauseGameEvent This will come from the pause view
+        """
+        def __init__(self, game):
+            self.name = "End Pause Game Event"
+            self.game = game            
+
 class EndScoreEvent(Event):
         """EndScoreEvent is emitted from the score view
         when the user left click on the menu button
