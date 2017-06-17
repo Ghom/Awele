@@ -447,6 +447,9 @@ class TextInfoSprite(pygame.sprite.Sprite):
 
 #------------------------------------------------------------------------------
 class TextSprite(pygame.sprite.Sprite):
+        """TextSprite hold the graphic components to build a text label.
+        The text can't be changed once displayed.
+        """
         def __init__(self, text, font_size=15, bold=False, group=()):
             pygame.sprite.Sprite.__init__(self, group)
             self.text = text
@@ -466,6 +469,9 @@ class TextSprite(pygame.sprite.Sprite):
 
 #-------------------------------------------------------------------------------
 class PushButton(pygame.sprite.Sprite):
+        """PushButton class hold the graphics to draw a button on the screen.
+        A callback can be registered to it and called when the button is pressed.
+        """
         def __init__(self, event_manager, text, size, color, callback, group=()):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
@@ -477,11 +483,13 @@ class PushButton(pygame.sprite.Sprite):
             
             pygame.sprite.Sprite.__init__(self, group)
 
+            #Draw a rectangle of the chosen color surrounded by black borders
             self.image = pygame.Surface(self.size).convert()
             self.image.fill(self.color)
             pygame.draw.rect(self.image, BLACK, [ (0,0), self.size ], 10)
             self.rect = self.image.get_rect()
 
+            # Print the chosen text in the middle of the button
             font_size = 20 
             self.myfont = pygame.font.SysFont("monospace", font_size, True)
             label = self.myfont.render(self.text, 1, BLACK)
@@ -494,4 +502,5 @@ class PushButton(pygame.sprite.Sprite):
             """
             if isinstance(event, LeftClickEvent):
                 if self.rect.collidepoint(event.pos):
+                    # call the registered callback when the button is clicked
                     self.callback()
