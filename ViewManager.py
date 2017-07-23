@@ -295,46 +295,41 @@ class ScoreView:
                 # when the user click the menu button inform the ViewManager to change the view
                 self.event_manager.post(EndScoreEvent())
 
-				
+#------------------------------------------------------------------------------
+class AbstractContainerSprite(pygame.sprite.Sprite):
+        """AbstractContainerSprite is the base class to create pit and store sprites
+        """
+        def __init__(self, container, group=()):
+            pygame.sprite.Sprite.__init__(self, group)
+            # binding to a specific container object of the game
+            self.container = container
+            
+            self.myfont = pygame.font.SysFont("monospace", 15)
+            self.update()
+            self.rect = self.image.get_rect()
+            
 #-------------------------------------------------------------------------------
-#TODO: create an bastract class Container that would be base class for PitSprite and StoreSprite
-# to remove redundancy in code
-class PitSprite(pygame.sprite.Sprite):
+class PitSprite(AbstractContainerSprite):
         """PitSprite is used to create a pit on the screen.
         For now the pit is an invisible clicking zone displaying a number of seeds
         """
         def __init__(self, event_manager, pit, group=()):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
-            # binding to a specific pit object of the game
-            self.pit = pit
-            
-            pygame.sprite.Sprite.__init__(self, group)
-		
-            # Draw a rectangular transparent surface
-            self.image = pygame.Surface(PIT_SIZE).convert_alpha()
-            self.image.fill((0,0,0,0))
-            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
-            self.rect = self.image.get_rect()
-
-            # add a number representing the number of seeds of binded pit in the center
-            myfont = pygame.font.SysFont("monospace", 15)
-            text = str(self.pit.seeds)
-            label = myfont.render(text, 1, YELLOW)
-            self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
+            AbstractContainerSprite.__init__(self, pit, group)
         
         #----------------------------------------------------------------------
         def update(self):
             """update draw the graphics element of the pit sprite with potentially new data
             """
+            # Draw a rectangular transparent surface
             self.image = pygame.Surface(PIT_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
             #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
 
-            myfont = pygame.font.SysFont("monospace", 15)
             # the data (number of seeds) get updated by poking into the binded pit
-            text = str(self.pit.seeds)
-            label = myfont.render(text, 1, YELLOW)
+            text = str(self.container.seeds)
+            label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
         
         #----------------------------------------------------------------------
@@ -344,42 +339,43 @@ class PitSprite(pygame.sprite.Sprite):
             if isinstance(event, LeftClickEvent):
                 if self.rect.collidepoint(event.pos):
                     # When the user click on the pit surface notify the game
-                    self.event_manager.post(PitClickedEvent(self.pit))
+                    self.event_manager.post(PitClickedEvent(self.container))
 
 #------------------------------------------------------------------------------
-class StoreSprite(pygame.sprite.Sprite):
+class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
         For now the Store is an invisible zone displaying a number of seeds
         """
         def __init__(self, store, group=()):
-            pygame.sprite.Sprite.__init__(self, group)
-            # binding to a specific store object of the game
-            self.store = store
+            AbstractContainerSprite.__init__(self, store, group)
+
+        def update(self):
+            """update draw the graphics element of the store sprite with potentially new data
+            """
 
             # Draw a rectangular transparent surface
             self.image = pygame.Surface(STORE_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
             #pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
-            self.rect = self.image.get_rect()
 
-            # add a number representing the number of seeds of binded store in the center
-            myfont = pygame.font.SysFont("monospace", 15)
-            text = str(self.store.seeds)
-            label = myfont.render(text, 1, YELLOW)
-            self.image.blit(label, ( STORE_SIZE[0]/2, STORE_SIZE[1]/2 ))
-
-        def update(self):
-            """update draw the graphics element of the store sprite with potentially new data
-            """
-            self.image = pygame.Surface(STORE_SIZE).convert_alpha()
-            self.image.fill((0,0,0,0))
-            #pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
-
-            myfont = pygame.font.SysFont("monospace", 15)
             # the data (number of seeds) get updated by poking into the binded pit
-            text = str(self.store.seeds)
-            label = myfont.render(text, 1, YELLOW)
+            text = str(self.container.seeds)
+            label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( STORE_SIZE[0]/2, STORE_SIZE[1]/2 ))
+
+#------------------------------------------------------------------------------
+import random
+class SeedSprite(pygame.sprite.Sprite):
+        """SeedSprite holds the graphics to create the seeds 
+        """
+        def __init__(self, group=()):
+            pygame.sprite.Sprite.__init__(self, group)
+            #get a random image of a seeds based on a matrix image containing 9 seeds of size 50x50
+            random_seed = random.randint(0, 8)
+            Debug("random_seed:"+str(random_seed))
+            coordinate = (50*random_seed, 0)
+            size = (50, 50)
+            self.image = pygame.image.load(PATH_BACKGROUND_SKIN).convert()
             
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):
