@@ -153,9 +153,13 @@ class GameView:
                 for container in game.player2.pit_list:
                     if isinstance(container, Pit):
                         # Add PitSprite binded with a Pit to the render group and place it on the board
+                        # pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
+                        # pit_sprite.rect.x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
+                        # pit_sprite.rect.y = FIRST_PIT_POS[1]
                         pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
-                        pit_sprite.rect.x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
-                        pit_sprite.rect.y = FIRST_PIT_POS[1]
+                        x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
+                        y = FIRST_PIT_POS[1]
+                        pit_sprite.update_pos(x, y)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
                         store_sprite = StoreSprite( container, self.pit_sprites )
@@ -166,9 +170,13 @@ class GameView:
                 for container in game.player1.pit_list:
                     if isinstance(container, Pit):
                         # Add PitSprite binded with a Pit to the render group and place it on the board
+                        # pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
+                        # pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
+                        # pit_sprite.rect.y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
                         pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
-                        pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
-                        pit_sprite.rect.y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
+                        x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
+                        y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
+                        pit_sprite.update_pos(x, y)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
                         store_sprite = StoreSprite( container, self.pit_sprites )
@@ -190,6 +198,10 @@ class GameView:
                 self.back_sprites.clear( self.window, self.background )
                 self.pit_sprites.clear( self.window, self.background )
 
+                # draw everything on the window surface
+                self.back_sprites.draw( self.window )
+                pygame.display.flip()
+                
                 self.back_sprites.update()
                 self.pit_sprites.update()
 
@@ -315,8 +327,15 @@ class PitSprite(AbstractContainerSprite):
         """
         def __init__(self, event_manager, pit, group=()):
             self.event_manager = event_manager
+            self.group = group
             self.event_manager.register_listener( self )
+            self.random_seed = random.randint(0, 8)
+            # Debug("random_seed:"+str(self.random_seed))
+            self.seed_sprites = []
+            self.random_angle = random.randint(0, 360)
             AbstractContainerSprite.__init__(self, pit, group)
+            # self.seed_sprites = SeedSprite(self.rect, group)
+            
         
         #----------------------------------------------------------------------
         def update(self):
@@ -325,13 +344,51 @@ class PitSprite(AbstractContainerSprite):
             # Draw a rectangular transparent surface
             self.image = pygame.Surface(PIT_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+            pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
 
             # the data (number of seeds) get updated by poking into the binded pit
             text = str(self.container.seeds)
             label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
+            self.draw_seeds()
+            print("this pit contain "+str(len(self.seed_sprites))+" seeds")
+            # add the seeds          
+#            coordinate = (0, 0)
+#            size = (50, 50)
+#            seed = pygame.image.load(PATH_SEEDS_MATRIX).convert()
+#            seed_surface = pygame.Surface((50, 50)).convert()
+#            seed_surface.set_colorkey((255,255,255,0))
+#            seed_surface.blit( seed, (0,0), (50* self.random_seed, 0, 50, 50) )
+#            seed_surface = pygame.transform.scale(seed_surface, (35, 35))
+#            self.image.blit(seed_surface, ( 0, 0 ))
+            
+        def add_seeds(self, quantity):
+            for i in range(quantity):
+                seed = SeedSprite(self.group)
+                self.seed_sprites.append(seed)
+                seed.set_position(len(self.seed_sprites), quantity, self.random_angle)
+                
+        def remove_seeds(self, quantity):
+            for i in range(quantity):
+                self.seed_sprites.pop()
         
+        def draw_seeds(self):
+            diff = self.container.seeds - len(self.seed_sprites)
+            
+            if(diff > 0):
+                print("add "+str(diff)+" seed")
+                self.add_seeds(diff)
+            elif(diff < 0):
+                print("remove "+str(abs(diff))+" seed")
+                self.remove_seeds(abs(diff))
+                
+        def update_pos(self, x, y):
+            self.rect.x = x
+            self.rect.y = y
+            for seed in self.seed_sprites:
+                seed.update_pos(x, y)
+            
+            
         #----------------------------------------------------------------------
         def notify(self, event):
             """notify is the incoming point of events reception
@@ -365,17 +422,101 @@ class StoreSprite(AbstractContainerSprite):
 
 #------------------------------------------------------------------------------
 import random
+import math
+pi = math.pi
 class SeedSprite(pygame.sprite.Sprite):
         """SeedSprite holds the graphics to create the seeds 
         """
         def __init__(self, group=()):
             pygame.sprite.Sprite.__init__(self, group)
             #get a random image of a seeds based on a matrix image containing 9 seeds of size 50x50
-            random_seed = random.randint(0, 8)
-            Debug("random_seed:"+str(random_seed))
-            coordinate = (50*random_seed, 0)
+            self.random_seed = random.randint(0, 8)
+            # Debug("random_seed:"+str(self.random_seed))
+            coordinate = (50*self.random_seed, 0)
             size = (50, 50)
-            self.image = pygame.image.load(PATH_BACKGROUND_SKIN).convert()
+            self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+            self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+            
+            #self.rect = rect.copy().move(rect.x + x_pos, rect.y + y_pos)
+            #self.rect = rect
+            #self.rect.move(x_pos, y_pos)
+            #self.rect.x = rect.x + x_pos
+            #self.rect.y = rect.y + 50
+            #PIT_SIZE[0], PIT_SIZE[1]
+            
+            #self.image = pygame.image.load(PATH_SEEDS_MATRIX).convert()
+            #seed_surface = pygame.Surface((50, 50)).convert()
+            #self.image.set_colorkey(BLACK)
+            
+            #seed_surface = pygame.Surface((50, 50)).convert_alpha()
+            #seed_surface.set_colorkey(BLACK)
+            #seed_surface.blit( self.image, coordinate, (0, 450-(coordinate[0] + 50), 50, 50) )
+            #self.rect = self.image.get_rect()
+            
+            
+            # add the seeds          
+            #coordinate = (0, 0)
+            #size = (50, 50)
+            seeds_image = pygame.image.load(PATH_SEEDS_MATRIX).convert()
+            self.surface = pygame.Surface((50, 50)).convert()
+            self.surface.set_colorkey((255,255,255,0))
+            self.surface.blit( seeds_image, (0,0), (50* self.random_seed, 0, 50, 50) )
+            self.surface = pygame.transform.scale(self.surface, (30, 30))
+            #self.image.blit(self.surface, ( 0, 0 ))
+            self.image = self.surface
+            self.rect = self.image.get_rect()
+        
+        def update_pos(self, x, y):
+            self.rect.x = x + self.x_pos
+            self.rect.y = y + self.y_pos
+        
+        def update(self):
+            donothing = 1
+            
+        def set_position(self, pos_id, total_seeds, random_angle):
+            print("seed set position")
+            if(total_seeds == 1):
+                self.x_pos = PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = PIT_SIZE[1]/2 - 15#(seed size)/2
+            elif(pos_id <= 4):
+                angle = (360/(total_seeds if total_seeds < 4 else 4))
+                angle_rad = (((pos_id-1)*pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                self.x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = rot_y*0.7 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+                # print("angle:{0} angle_rad:{1} rot_x:{2} rot_y:{3} x_pos:{4} y_pos:{5}".format( angle,
+                                                                                                # angle_rad,
+                                                                                                # rot_x,
+                                                                                                # rot_y,
+                                                                                                # self.x_pos,
+                                                                                                # self.y_pos))
+            elif(pos_id <= 8):
+                angle = 90*(pos_id - 8)  + 45
+                angle_rad = ((pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                self.x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = rot_y*1.15 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+            else:
+                self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+                
+        def set_position_bis(self, pos_id):
+            power = float(int(pos_id/4)+1)/3
+            print("power:"+str(power))
+            if((pos_id%4) == 1):
+                self.x_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+            if((pos_id%4) == 2):
+                self.x_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+            if((pos_id%4) == 3):
+                self.x_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+            if((pos_id%4) == 4):
+                self.x_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
+                self.y_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
             
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):

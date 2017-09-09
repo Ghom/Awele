@@ -13,6 +13,7 @@ PATH_PIT_SKIN = BASE_PATH+"/data/images/pit.png"
 PATH_STORE_SKIN = BASE_PATH+"/data/images/store.png"
 PATH_BACKGROUND_SKIN = BASE_PATH+"/data/images/background.png"
 PATH_BOARD_SKIN = BASE_PATH+"/data/images/board.png"
+PATH_SEEDS_MATRIX = BASE_PATH+"/data/images/seeds.png"
 
 #--------------------------------------------------------------------------------
 # Game view position and size reference

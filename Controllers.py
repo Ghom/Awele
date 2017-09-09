@@ -69,7 +69,7 @@ class CPUSpinnerController:
         def run(self):
             while self.keep_going:
                 # reduce to 30 tick/s to save CPU usage
-                self.clock.tick(30)
+                self.clock.tick(1)
                 event = TickEvent()
                 self.event_manager.post(event)
             pygame.quit()
