@@ -330,6 +330,7 @@ class PitSprite(AbstractContainerSprite):
             self.seed_sprites = []
             # a random angle that will be applied on the seeds to display 
             self.random_angle = random.randint(0, 360)
+            self.show_seed_nb = False
             
             AbstractContainerSprite.__init__(self, pit, group)          
         
@@ -343,20 +344,24 @@ class PitSprite(AbstractContainerSprite):
             
             # DEBUG: this show the clicking area in red
             #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
-
-            # the data (number of seeds) get updated by poking into the binded pit
-            text = str(self.container.seeds)
-            label = self.myfont.render(text, 1, YELLOW)
-            self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
+           
             self.draw_seeds()
             
+            if(self.show_seed_nb):
+                # the data (number of seeds) get updated by poking into the binded pit
+                text = str(self.container.seeds)
+                label = self.myfont.render(text, 1, YELLOW)
+                self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
+            
         def add_seeds(self, quantity):
-            for i in range(quantity):
+            total_seed = quantity + len(self.seed_sprites)
+            self.remove_seeds(len(self.seed_sprites))
+            for i in range(total_seed):
                 seed = SeedSprite(self.group)
+                seed.set_position(len(self.seed_sprites), total_seed, self.random_angle)
                 if hasattr(self, 'rect'):
                     seed.update_pos(self.rect.x, self.rect.y)
                 self.seed_sprites.append(seed)
-                seed.set_position(len(self.seed_sprites), quantity, self.random_angle)
                 
         def remove_seeds(self, quantity):
             for i in range(quantity):
@@ -367,10 +372,8 @@ class PitSprite(AbstractContainerSprite):
             diff = self.container.seeds - len(self.seed_sprites)
             
             if(diff > 0):
-                print("add "+str(diff)+" seed")
                 self.add_seeds(diff)
             elif(diff < 0):
-                print("remove "+str(abs(diff))+" seed")
                 self.remove_seeds(abs(diff))
                 
         def update_pos(self, x, y):
@@ -378,7 +381,10 @@ class PitSprite(AbstractContainerSprite):
             self.rect.y = y
             for seed in self.seed_sprites:
                 seed.update_pos(x, y)
-            
+                
+        def show_seed_text(self):
+            print("show seed nb")
+            self.show_seed_nb = True
             
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -388,7 +394,10 @@ class PitSprite(AbstractContainerSprite):
                 if self.rect.collidepoint(event.pos):
                     # When the user click on the pit surface notify the game
                     self.event_manager.post(PitClickedEvent(self.container))
-
+            
+            if isinstance(event, RightClickEvent):
+                if self.rect.collidepoint(event.pos):
+                    self.show_seed_text()
 #------------------------------------------------------------------------------
 class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
@@ -422,8 +431,8 @@ class SeedSprite(pygame.sprite.Sprite):
             pygame.sprite.Sprite.__init__(self, group)
             # get a random image of a seeds based on a matrix image containing 9 seeds of (size SEED_TEXT_SIZE x SEED_TEXT_SIZE)
             self.random_seed = random.randint(0, 8)
-            self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
-            self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            self.x_pos = 0
+            self.y_pos = 0
 
             # create a surface from the seed texture of the randomly selected seed image [0-8]
             seeds_image = pygame.image.load(PATH_SEEDS_MATRIX).convert()
@@ -447,6 +456,7 @@ class SeedSprite(pygame.sprite.Sprite):
             according to the number of seed present in the pit and the seed number (ordered in a list) 
             NOTE: This function is a hack avoiding creating physics to place the seeds
             """
+            # print("total_seed:"+str(total_seeds)+", pos_id:"+str(pos_id)) 
             if(total_seeds == 1):
                 # if there is only one seed place it in the center of the pit
                 self.x_pos = PIT_SIZE[0]/2 - SEED_SIZE/2

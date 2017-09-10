@@ -32,6 +32,10 @@ class MousseController:
                     if event.type == MOUSEBUTTONUP: 
                         if event.button == 1:
                             ev = LeftClickEvent( event.pos )
+                            
+                    if event.type == MOUSEBUTTONDOWN: 
+                        if event.button == 3:
+                            ev = RightClickEvent( event.pos )
 
                     if ev:
                         self.event_manager.post( ev )

@@ -61,6 +61,14 @@ class LeftClickEvent(Event):
         def __init__(self, pos):
             self.name = "Left Click Event"
             self.pos = pos
+            
+class RightClickEvent(Event):
+        """RightClickEvent is emmited from mousse controller
+        whenever the user right click on the screen surface
+        """
+        def __init__(self, pos):
+            self.name = "Right Click Event"
+            self.pos = pos
 
 class QuitEvent(Event):
         """QuitEvent is emmited from mousse controller
