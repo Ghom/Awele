@@ -340,7 +340,9 @@ class PitSprite(AbstractContainerSprite):
             # Draw a rectangular transparent surface
             self.image = pygame.Surface(PIT_SIZE).convert_alpha()
             self.image.fill((0,0,0,0))
-            pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+            
+            # DEBUG: this show the clicking area in red
+            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
 
             # the data (number of seeds) get updated by poking into the binded pit
             text = str(self.container.seeds)
