@@ -197,10 +197,6 @@ class GameView:
                 self.background.fill( (0,0,0) )
                 self.back_sprites.clear( self.window, self.background )
                 self.pit_sprites.clear( self.window, self.background )
-
-                # draw everything on the window surface
-                self.back_sprites.draw( self.window )
-                pygame.display.flip()
                 
                 self.back_sprites.update()
                 self.pit_sprites.update()
@@ -351,7 +347,7 @@ class PitSprite(AbstractContainerSprite):
             label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
             self.draw_seeds()
-            print("this pit contain "+str(len(self.seed_sprites))+" seeds")
+
             # add the seeds          
 #            coordinate = (0, 0)
 #            size = (50, 50)
@@ -365,12 +361,15 @@ class PitSprite(AbstractContainerSprite):
         def add_seeds(self, quantity):
             for i in range(quantity):
                 seed = SeedSprite(self.group)
+                if hasattr(self, 'rect'):
+                    seed.update_pos(self.rect.x, self.rect.y)
                 self.seed_sprites.append(seed)
                 seed.set_position(len(self.seed_sprites), quantity, self.random_angle)
                 
         def remove_seeds(self, quantity):
             for i in range(quantity):
-                self.seed_sprites.pop()
+                seed = self.seed_sprites.pop()
+                seed.kill()
         
         def draw_seeds(self):
             diff = self.container.seeds - len(self.seed_sprites)
@@ -467,6 +466,7 @@ class SeedSprite(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
         
         def update_pos(self, x, y):
+            print("update pos")
             self.rect.x = x + self.x_pos
             self.rect.y = y + self.y_pos
         
