@@ -325,13 +325,13 @@ class PitSprite(AbstractContainerSprite):
             self.event_manager = event_manager
             self.group = group
             self.event_manager.register_listener( self )
-            self.random_seed = random.randint(0, 8)
-            # Debug("random_seed:"+str(self.random_seed))
-            self.seed_sprites = []
-            self.random_angle = random.randint(0, 360)
-            AbstractContainerSprite.__init__(self, pit, group)
-            # self.seed_sprites = SeedSprite(self.rect, group)
             
+            # the list containing the seed sprites in the current pit
+            self.seed_sprites = []
+            # a random angle that will be applied on the seeds to display 
+            self.random_angle = random.randint(0, 360)
+            
+            AbstractContainerSprite.__init__(self, pit, group)          
         
         #----------------------------------------------------------------------
         def update(self):
@@ -347,16 +347,6 @@ class PitSprite(AbstractContainerSprite):
             label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
             self.draw_seeds()
-
-            # add the seeds          
-#            coordinate = (0, 0)
-#            size = (50, 50)
-#            seed = pygame.image.load(PATH_SEEDS_MATRIX).convert()
-#            seed_surface = pygame.Surface((50, 50)).convert()
-#            seed_surface.set_colorkey((255,255,255,0))
-#            seed_surface.blit( seed, (0,0), (50* self.random_seed, 0, 50, 50) )
-#            seed_surface = pygame.transform.scale(seed_surface, (35, 35))
-#            self.image.blit(seed_surface, ( 0, 0 ))
             
         def add_seeds(self, quantity):
             for i in range(quantity):
@@ -428,95 +418,60 @@ class SeedSprite(pygame.sprite.Sprite):
         """
         def __init__(self, group=()):
             pygame.sprite.Sprite.__init__(self, group)
-            #get a random image of a seeds based on a matrix image containing 9 seeds of size 50x50
+            # get a random image of a seeds based on a matrix image containing 9 seeds of (size SEED_TEXT_SIZE x SEED_TEXT_SIZE)
             self.random_seed = random.randint(0, 8)
-            # Debug("random_seed:"+str(self.random_seed))
-            coordinate = (50*self.random_seed, 0)
-            size = (50, 50)
-            self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-            self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-            
-            #self.rect = rect.copy().move(rect.x + x_pos, rect.y + y_pos)
-            #self.rect = rect
-            #self.rect.move(x_pos, y_pos)
-            #self.rect.x = rect.x + x_pos
-            #self.rect.y = rect.y + 50
-            #PIT_SIZE[0], PIT_SIZE[1]
-            
-            #self.image = pygame.image.load(PATH_SEEDS_MATRIX).convert()
-            #seed_surface = pygame.Surface((50, 50)).convert()
-            #self.image.set_colorkey(BLACK)
-            
-            #seed_surface = pygame.Surface((50, 50)).convert_alpha()
-            #seed_surface.set_colorkey(BLACK)
-            #seed_surface.blit( self.image, coordinate, (0, 450-(coordinate[0] + 50), 50, 50) )
-            #self.rect = self.image.get_rect()
-            
-            
-            # add the seeds          
-            #coordinate = (0, 0)
-            #size = (50, 50)
+            self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+            self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+
+            # create a surface from the seed texture of the randomly selected seed image [0-8]
             seeds_image = pygame.image.load(PATH_SEEDS_MATRIX).convert()
-            self.surface = pygame.Surface((50, 50)).convert()
+            self.surface = pygame.Surface((SEED_TEXT_SIZE, SEED_TEXT_SIZE)).convert()
             self.surface.set_colorkey((255,255,255,0))
-            self.surface.blit( seeds_image, (0,0), (50* self.random_seed, 0, 50, 50) )
-            self.surface = pygame.transform.scale(self.surface, (30, 30))
-            #self.image.blit(self.surface, ( 0, 0 ))
+            self.surface.blit( seeds_image, (0,0), (SEED_TEXT_SIZE* self.random_seed, 0, SEED_TEXT_SIZE, SEED_TEXT_SIZE) )
+
+            # scale the surface to a more appropriate size and display
+            self.surface = pygame.transform.scale(self.surface, (SEED_SIZE, SEED_SIZE))
             self.image = self.surface
             self.rect = self.image.get_rect()
         
         def update_pos(self, x, y):
-            print("update pos")
+            """update_pos move the seed to a new position
+            """
             self.rect.x = x + self.x_pos
             self.rect.y = y + self.y_pos
-        
-        def update(self):
-            donothing = 1
             
         def set_position(self, pos_id, total_seeds, random_angle):
-            print("seed set position")
+            """set_position determine and set the position of the seed in the pit
+            according to the number of seed present in the pit and the seed number (ordered in a list) 
+            NOTE: This function is a hack avoiding creating physics to place the seeds
+            """
             if(total_seeds == 1):
-                self.x_pos = PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = PIT_SIZE[1]/2 - 15#(seed size)/2
+                # if there is only one seed place it in the center of the pit
+                self.x_pos = PIT_SIZE[0]/2 - SEED_SIZE/2
+                self.y_pos = PIT_SIZE[1]/2 - SEED_SIZE/2
             elif(pos_id <= 4):
+                # for the seeds number 2 to 4 place them at an angle equal to 
+                # 360°/(seed number). If there is more seed than 4 in the pit
+                # that angle is always 90°
                 angle = (360/(total_seeds if total_seeds < 4 else 4))
                 angle_rad = (((pos_id-1)*pi*angle)+(pi*random_angle))/180
                 rot_x = math.cos(angle_rad)
                 rot_y = math.sin(angle_rad)
-                self.x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = rot_y*0.7 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-                # print("angle:{0} angle_rad:{1} rot_x:{2} rot_y:{3} x_pos:{4} y_pos:{5}".format( angle,
-                                                                                                # angle_rad,
-                                                                                                # rot_x,
-                                                                                                # rot_y,
-                                                                                                # self.x_pos,
-                                                                                                # self.y_pos))
+                self.x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                self.y_pos = rot_y*0.7 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
             elif(pos_id <= 8):
+                # the following seeds in between 5 and 8 are place at an angle of 90°
+                # a bit further away from the center of the pit
                 angle = 90*(pos_id - 8)  + 45
                 angle_rad = ((pi*angle)+(pi*random_angle))/180
                 rot_x = math.cos(angle_rad)
                 rot_y = math.sin(angle_rad)
-                self.x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = rot_y*1.15 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+                self.x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                self.y_pos = rot_y*1.15 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
             else:
-                self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-                
-        def set_position_bis(self, pos_id):
-            power = float(int(pos_id/4)+1)/3
-            print("power:"+str(power))
-            if((pos_id%4) == 1):
-                self.x_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-            if((pos_id%4) == 2):
-                self.x_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-            if((pos_id%4) == 3):
-                self.x_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
-            if((pos_id%4) == 4):
-                self.x_pos = random.uniform(-1.0*power, 0.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - 15#(seed size)/2
-                self.y_pos = random.uniform( 0.0, power*1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - 15#(seed size)/2
+                # from the 9th seed averything is placed randomly within the pit
+                self.x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                self.y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
             
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):
