@@ -31,6 +31,11 @@ BOT_PIT_Y = BOARD_POSITION[1] + BORDER_GAP[1] + PIT_SIZE[1] + PIT_GAP[1]
 FIRST_PIT_X_OFFSET = 0
 FIRST_PIT_POS = (BOARD_POSITION[0] + BORDER_GAP[0] + STORE_SIZE[0] + PIT_GAP[0] + FIRST_PIT_X_OFFSET, TOP_PIT_Y)
 
+#--------------------------------------------------------------------------------
+# Game events global definition
+MOUSE_UP = 0
+MOUSE_DOWN = 1
+
 #---------------------------------------------------------------------------------
 # Define some colors
 BLACK  = (  0,   0,   0)

@@ -10,7 +10,7 @@ import pygame
 from pygame.locals import *
 
 from EventManager import *
-from Global import Debug
+from Global import *
 
 #------------------------------------------------------------------------------
 class MousseController:
@@ -31,11 +31,13 @@ class MousseController:
                             
                     if event.type == MOUSEBUTTONUP: 
                         if event.button == 1:
-                            ev = LeftClickEvent( event.pos )
+                            ev = LeftClickEvent(MOUSE_UP, event.pos )
+                        if event.button == 3:
+                            ev = RightClickEvent(MOUSE_UP, event.pos )
                             
                     if event.type == MOUSEBUTTONDOWN: 
                         if event.button == 3:
-                            ev = RightClickEvent( event.pos )
+                            ev = RightClickEvent(MOUSE_DOWN, event.pos )
 
                     if ev:
                         self.event_manager.post( ev )

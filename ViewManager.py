@@ -129,8 +129,8 @@ class GameView:
             self.window = pygame.display.get_surface()
     
             # add background
-            self.back_sprites = pygame.sprite.RenderUpdates()
-            self.pit_sprites = pygame.sprite.RenderUpdates()
+            self.back_sprites = pygame.sprite.LayeredUpdates()
+            self.pit_sprites = pygame.sprite.LayeredUpdates()
             background = BackgroundSprite( self.back_sprites )
             background.rect = (0, 0)
 
@@ -160,6 +160,7 @@ class GameView:
                         x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
                         y = FIRST_PIT_POS[1]
                         pit_sprite.update_pos(x, y)
+                        self.pit_sprites.change_layer(pit_sprite, 1)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
                         store_sprite = StoreSprite( container, self.pit_sprites )
@@ -177,6 +178,7 @@ class GameView:
                         x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
                         y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
                         pit_sprite.update_pos(x, y)
+                        self.pit_sprites.change_layer(pit_sprite, 1)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
                         store_sprite = StoreSprite( container, self.pit_sprites )
@@ -203,7 +205,7 @@ class GameView:
 
                 dirtyRects1 = self.back_sprites.draw( self.window )
                 dirtyRects2 = self.pit_sprites.draw( self.window )
-                
+
                 # Using the dirty rectangle method to draw the game avoid updating the entire screen
                 # it only update the differences
                 dirtyRects = dirtyRects1 + dirtyRects2
@@ -332,7 +334,7 @@ class PitSprite(AbstractContainerSprite):
             self.random_angle = random.randint(0, 360)
             self.show_seed_nb = False
             
-            AbstractContainerSprite.__init__(self, pit, group)          
+            AbstractContainerSprite.__init__(self, pit, group)
         
         #----------------------------------------------------------------------
         def update(self):
@@ -344,7 +346,7 @@ class PitSprite(AbstractContainerSprite):
             
             # DEBUG: this show the clicking area in red
             #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
-           
+            
             self.draw_seeds()
             
             if(self.show_seed_nb):
@@ -381,11 +383,7 @@ class PitSprite(AbstractContainerSprite):
             self.rect.y = y
             for seed in self.seed_sprites:
                 seed.update_pos(x, y)
-                
-        def show_seed_text(self):
-            print("show seed nb")
-            self.show_seed_nb = True
-            
+
         #----------------------------------------------------------------------
         def notify(self, event):
             """notify is the incoming point of events reception
@@ -397,7 +395,10 @@ class PitSprite(AbstractContainerSprite):
             
             if isinstance(event, RightClickEvent):
                 if self.rect.collidepoint(event.pos):
-                    self.show_seed_text()
+                    if(event.action == MOUSE_DOWN):
+                        self.show_seed_nb = True
+                    elif(event.action == MOUSE_UP):
+                        self.show_seed_nb = False
 #------------------------------------------------------------------------------
 class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
