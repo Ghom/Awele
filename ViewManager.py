@@ -310,51 +310,21 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
         """AbstractContainerSprite is the base class to create pit and store sprites
         """
         def __init__(self, container, group=()):
+            self.group = group
             pygame.sprite.Sprite.__init__(self, group)
             # binding to a specific container object of the game
             self.container = container
-            
-            self.myfont = pygame.font.SysFont("monospace", 15)
-            self.update()
-            self.rect = self.image.get_rect()
-            
-#-------------------------------------------------------------------------------
-class PitSprite(AbstractContainerSprite):
-        """PitSprite is used to create a pit on the screen.
-        For now the pit is an invisible clicking zone displaying a number of seeds
-        """
-        def __init__(self, event_manager, pit, group=()):
-            self.event_manager = event_manager
-            self.group = group
-            self.event_manager.register_listener( self )
-            
-            # the list containing the seed sprites in the current pit
+            # the list containing the seed sprites in the current container
             self.seed_sprites = []
             # a random angle that will be applied on the seeds to display 
             self.random_angle = random.randint(0, 360)
             self.show_seed_nb = False
             
-            AbstractContainerSprite.__init__(self, pit, group)
+            self.myfont = pygame.font.SysFont("monospace", 15)
+            self.update()
+            self.rect = self.image.get_rect()
+
         
-        #----------------------------------------------------------------------
-        def update(self):
-            """update draw the graphics element of the pit sprite with potentially new data
-            """
-            # Draw a rectangular transparent surface
-            self.image = pygame.Surface(PIT_SIZE).convert_alpha()
-            self.image.fill((0,0,0,0))
-            
-            # DEBUG: this show the clicking area in red
-            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
-            
-            self.draw_seeds()
-            
-            if(self.show_seed_nb):
-                # the data (number of seeds) get updated by poking into the binded pit
-                text = str(self.container.seeds)
-                label = self.myfont.render(text, 1, YELLOW)
-                self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
-            
         def add_seeds(self, quantity):
             total_seed = quantity + len(self.seed_sprites)
             self.remove_seeds(len(self.seed_sprites))
@@ -383,6 +353,36 @@ class PitSprite(AbstractContainerSprite):
             self.rect.y = y
             for seed in self.seed_sprites:
                 seed.update_pos(x, y)
+            
+#-------------------------------------------------------------------------------
+class PitSprite(AbstractContainerSprite):
+        """PitSprite is used to create a pit on the screen.
+        For now the pit is an invisible clicking zone displaying a number of seeds
+        """
+        def __init__(self, event_manager, pit, group=()):
+            self.event_manager = event_manager
+            self.event_manager.register_listener( self )
+
+            AbstractContainerSprite.__init__(self, pit, group)
+        
+        #----------------------------------------------------------------------
+        def update(self):
+            """update draw the graphics element of the pit sprite with potentially new data
+            """
+            # Draw a rectangular transparent surface
+            self.image = pygame.Surface(PIT_SIZE).convert_alpha()
+            self.image.fill((0,0,0,0))
+            
+            # DEBUG: this show the clicking area in red
+            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)
+            
+            self.draw_seeds()
+            
+            if(self.show_seed_nb):
+                # the data (number of seeds) get updated by poking into the binded pit
+                text = str(self.container.seeds)
+                label = self.myfont.render(text, 1, YELLOW)
+                self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
 
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -420,6 +420,8 @@ class StoreSprite(AbstractContainerSprite):
             text = str(self.container.seeds)
             label = self.myfont.render(text, 1, YELLOW)
             self.image.blit(label, ( STORE_SIZE[0]/2, STORE_SIZE[1]/2 ))
+            
+            self.draw_seeds()
 
 #------------------------------------------------------------------------------
 import random
