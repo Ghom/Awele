@@ -397,8 +397,8 @@ class PitSprite(AbstractContainerSprite):
                 if self.rect.collidepoint(event.pos):
                     if(event.action == MOUSE_DOWN):
                         self.show_seed_nb = True
-                    elif(event.action == MOUSE_UP):
-                        self.show_seed_nb = False
+                elif(event.action == MOUSE_UP):
+                    self.show_seed_nb = False
 #------------------------------------------------------------------------------
 class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
