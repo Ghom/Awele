@@ -89,14 +89,21 @@ class Game:
             """
             Debug("This is the end of the game!")
             
-            # Getting the remaining seeds of the inactive player
+            # giving the remaining seeds to the player it belong to
             # and putting them in his store
-            remaining_seeds = 0
-            for container in self.inactive_player.pit_list:
-                if not isinstance(container, Store):
-                    remaining_seeds += container.take_seeds()
+            # Note: Because of the nature of the end of game condition this should only affect one player
+            active_player_remaining_seeds = 0
+            inactive_player_remaining_seeds = 0
+            for active_player_pit, inactive_player_pit in zip(self.active_player.pit_list, self.inactive_player.pit_list):
+                if not isinstance(active_player_pit, Store):
+                    active_player_remaining_seeds += active_player_pit.take_seeds()
                 else:
-                    container.add_seed(remaining_seeds)
+                    active_player_pit.add_seed(active_player_remaining_seeds)
+                    
+                if not isinstance(inactive_player_pit, Store):
+                    inactive_player_remaining_seeds += inactive_player_pit.take_seeds()
+                else:
+                    inactive_player_pit.add_seed(inactive_player_remaining_seeds)
 
             # Comparing the two players seeds number to determine who won the game
             # Note: in case of draw self.winner remain the value None otherwise it will point the right player
@@ -136,15 +143,25 @@ class Game:
 
             # END OF GAME CONDITION
             # Check for the end of Game condition: if the active player have no seeds in his pits the game stop
-            for container in pit_list_active:
-                if isinstance(container, Pit) and container.seeds != 0:
-                    break
-                    # Player stil have seeds this is not the end of game
-                if isinstance(container, Store):
-                    # All the pits are empty (because we didn't break on previous condition)
-                    # So this is the end of the Game the other player get all the seeds from his pits and put them in his Store
-                    self.end_game()
-                    return
+            active_player_seed_left = 0
+            inactive_player_seed_left = 0
+            for container_active, container_inactive in zip(pit_list_active, pit_list_inactive):
+                if isinstance(container_active, Pit):
+                    active_player_seed_left += container_active.seeds
+                
+                if isinstance(container_inactive, Pit):
+                    inactive_player_seed_left += container_inactive.seeds
+                
+                # if both player still have seeds left this is won't trigger end of game 
+                # so the loop can stop to avoid wasting time (even if this not a big deal there)
+                if (active_player_seed_left != 0) and (inactive_player_seed_left != 0):
+                    break;
+                    
+            if (active_player_seed_left == 0) or (inactive_player_seed_left == 0):
+                # on of the side is completely empty
+                # So this is the end of the Game the other player get all the seeds from his pits and put them in his Store
+                self.end_game()
+                return
 
         #----------------------------------------------------------------------
         def pit_clicked(self, pit):
