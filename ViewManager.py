@@ -330,7 +330,7 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
             self.remove_seeds(len(self.seed_sprites))
             for i in range(total_seed):
                 seed = SeedSprite(self.group)
-                seed.set_position(len(self.seed_sprites), total_seed, self.random_angle)
+                self.set_position(seed, len(self.seed_sprites), total_seed, self.random_angle)
                 if hasattr(self, 'rect'):
                     seed.update_pos(self.rect.x, self.rect.y)
                 self.seed_sprites.append(seed)
@@ -384,6 +384,42 @@ class PitSprite(AbstractContainerSprite):
                 label = self.myfont.render(text, 1, YELLOW)
                 self.image.blit(label, ( PIT_SIZE[0]/2, PIT_SIZE[1]/2 ))
 
+        def set_position(self, seed, pos_id, total_seeds, random_angle):
+            """set_position determine and set the position of the seed in the pit
+            according to the number of seed present in the pit and the seed number (ordered in a list) 
+            NOTE: This function is a hack avoiding creating physics to place the seeds
+            """
+            # print("total_seed:"+str(total_seeds)+", pos_id:"+str(pos_id)) 
+            if(total_seeds == 1):
+                # if there is only one seed place it in the center of the pit
+                x_pos = PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = PIT_SIZE[1]/2 - SEED_SIZE/2
+            elif(pos_id <= 4):
+                # for the seeds number 2 to 4 place them at an angle equal to 
+                # 360°/(seed number). If there is more seed than 4 in the pit
+                # that angle is always 90°
+                angle = (360/(total_seeds if total_seeds < 4 else 4))
+                angle_rad = (((pos_id-1)*pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = rot_y*0.7 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            elif(pos_id <= 8):
+                # the following seeds in between 5 and 8 are place at an angle of 90°
+                # a bit further away from the center of the pit
+                angle = 90*(pos_id - 8)  + 45
+                angle_rad = ((pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = rot_y*1.15 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            else:
+                # from the 9th seed averything is placed randomly within the pit
+                x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+
+            seed.set_position(x_pos, y_pos)
+
         #----------------------------------------------------------------------
         def notify(self, event):
             """notify is the incoming point of events reception
@@ -423,6 +459,9 @@ class StoreSprite(AbstractContainerSprite):
             
             self.draw_seeds()
 
+        def set_position(self, seed, pos_id, total_seeds, random_angle):
+            seed.set_position(0,0)
+
 #------------------------------------------------------------------------------
 import random
 import math
@@ -453,8 +492,12 @@ class SeedSprite(pygame.sprite.Sprite):
             """
             self.rect.x = x + self.x_pos
             self.rect.y = y + self.y_pos
+
+        def set_position(self, x, y):
+            self.x_pos = x
+            self.y_pos = y
             
-        def set_position(self, pos_id, total_seeds, random_angle):
+        def set_position_bis(self, pos_id, total_seeds, random_angle):
             """set_position determine and set the position of the seed in the pit
             according to the number of seed present in the pit and the seed number (ordered in a list) 
             NOTE: This function is a hack avoiding creating physics to place the seeds
