@@ -460,6 +460,55 @@ class StoreSprite(AbstractContainerSprite):
             self.draw_seeds()
 
         def set_position(self, seed, pos_id, total_seeds, random_angle):
+            """set_position determine and set the position of the seed in the pit
+            according to the number of seed present in the pit and the seed number (ordered in a list) 
+            NOTE: This function is a hack avoiding creating physics to place the seeds
+            """
+
+            slot_unavaillable = 0
+            slot_availlable = 1
+            slot_occupied = 2
+            available_seed_slot1 = []
+            available_seed_slot2 = []
+            available_seed_slot3 = []
+            slot_size = (STORE_SIZE[0]/5, STORE_SIZE[1]/12)
+            slot_origin = (50,50)
+
+            for i in range(0,10):
+                slot1 = [1, slot_origin[0], slot_origin[1]i*slot_size[1]] #[status, x, y]
+                slot2 = [0, slot_origin[0]+slot_size[0], slot_origin[1]i*slot_size[1]] #[status, x, y]
+                slot3 = [0, slot_origin[0]-slot_size[0], slot_origin[1]i*slot_size[1]] #[status, x, y]
+                
+
+            # print("total_seed:"+str(total_seeds)+", pos_id:"+str(pos_id)) 
+            if(total_seeds == 1):
+                # if there is only one seed place it in the center of the pit
+                x_pos = PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = PIT_SIZE[1]/2 - SEED_SIZE/2
+            elif(pos_id <= 4):
+                # for the seeds number 2 to 4 place them at an angle equal to 
+                # 360°/(seed number). If there is more seed than 4 in the pit
+                # that angle is always 90°
+                angle = (360/(total_seeds if total_seeds < 4 else 4))
+                angle_rad = (((pos_id-1)*pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = rot_y*0.7 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            elif(pos_id <= 8):
+                # the following seeds in between 5 and 8 are place at an angle of 90°
+                # a bit further away from the center of the pit
+                angle = 90*(pos_id - 8)  + 45
+                angle_rad = ((pi*angle)+(pi*random_angle))/180
+                rot_x = math.cos(angle_rad)
+                rot_y = math.sin(angle_rad)
+                x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = rot_y*1.15 * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            else:
+                # from the 9th seed averything is placed randomly within the pit
+                x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
+                y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
+            
             seed.set_position(0,0)
 
 #------------------------------------------------------------------------------
