@@ -353,7 +353,7 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
             self.rect.y = y
             for seed in self.seed_sprites:
                 seed.update_pos(x, y)
-            
+
 #-------------------------------------------------------------------------------
 class PitSprite(AbstractContainerSprite):
         """PitSprite is used to create a pit on the screen.
