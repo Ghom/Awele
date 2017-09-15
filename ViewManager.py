@@ -326,7 +326,6 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
             self.update()
             self.rect = self.image.get_rect()
 
-        
         def add_seeds(self, quantity):
             total_seed = quantity + len(self.seed_sprites)
             self.remove_seeds(len(self.seed_sprites))
@@ -437,6 +436,7 @@ class PitSprite(AbstractContainerSprite):
                 
                 if(event.action == MOUSE_UP):
                     self.show_seed_nb = False
+                    
 #------------------------------------------------------------------------------
 class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
@@ -465,9 +465,7 @@ class StoreSprite(AbstractContainerSprite):
             self.draw_seeds()
 
         def set_position(self, seed, pos_id, total_seeds, random_angle):
-            """set_position determine and set the position of the seed in the pit
-            according to the number of seed present in the pit and the seed number (ordered in a list) 
-            NOTE: This function is a hack avoiding creating physics to place the seeds
+            """set_position determine and set the position of the seed in the store
             """
             slot_size = (STORE_SIZE[0]/4, STORE_SIZE[1]/7)
             slot_origin = (1,5)
@@ -476,8 +474,8 @@ class StoreSprite(AbstractContainerSprite):
                 x_pos = slot_origin[0] + int(pos_id/6)*slot_size[0]
                 y_pos = slot_origin[1] + (pos_id%6)*slot_size[1]
             else:
-                x_pos = random.uniform(slot_origin[0] + int(0/6)*slot_size[0], slot_origin[0] + int(17/6)*slot_size[0])
-                y_pos = random.uniform(slot_origin[1] + (0%6)*slot_size[1], slot_origin[1] + (17%6)*slot_size[1])
+                x_pos = random.uniform(slot_origin[0] + slot_size[0], slot_origin[0] + 2*slot_size[0])
+                y_pos = random.uniform(slot_origin[1] + slot_size[1], slot_origin[1] + 5*slot_size[1])
             
             seed.set_position(x_pos, y_pos)
         
