@@ -327,18 +327,32 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
 
         def add_seeds(self, quantity):
-            total_seed = quantity + len(self.seed_sprites)
-            self.remove_seeds(len(self.seed_sprites))
+            total_seed =  len(self.seed_sprites) + quantity
+            self.erase_seeds() #remove existing seed from the group so they are not displayed anymore
+            
+            # Put existing seed back into the group and reset their position
+            # add new seeds to the list to reach the total number of seed desired
             for i in range(total_seed):
-                seed = SeedSprite(self.group)
-                self.set_position(seed, len(self.seed_sprites), total_seed, self.random_angle)
+                seed = None
+                if(i < len(self.seed_sprites)):
+                    seed = self.seed_sprites[i]
+                    self.group.add(seed)
+                else:
+                    seed = SeedSprite(self.group)
+                    self.seed_sprites.append(seed)
+                    
+                self.set_position(seed, i, total_seed, self.random_angle)
                 if hasattr(self, 'rect'):
                     seed.update_pos(self.rect.x, self.rect.y)
-                self.seed_sprites.append(seed)
+                
                 
         def remove_seeds(self, quantity):
             for i in range(quantity):
                 seed = self.seed_sprites.pop()
+                seed.kill()
+        
+        def erase_seeds(self):
+            for seed in self.seed_sprites:
                 seed.kill()
         
         def draw_seeds(self):
