@@ -153,38 +153,30 @@ class GameView:
                 for container in game.player2.pit_list:
                     if isinstance(container, Pit):
                         # Add PitSprite binded with a Pit to the render group and place it on the board
-                        # pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
-                        # pit_sprite.rect.x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
-                        # pit_sprite.rect.y = FIRST_PIT_POS[1]
-                        pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
                         x = FIRST_PIT_POS[0] + (5-container.id) * (PIT_GAP[0] + PIT_SIZE[0])
                         y = FIRST_PIT_POS[1]
-                        pit_sprite.update_pos(x, y)
+                        pit_sprite = PitSprite( self.event_manager, container, (x,y), self.pit_sprites )
                         self.pit_sprites.change_layer(pit_sprite, 1)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
-                        store_sprite = StoreSprite(self.event_manager, container, self.pit_sprites )
-                        store_sprite.rect.x = BOARD_POSITION[0] + BORDER_GAP[0]
-                        store_sprite.rect.y = BOARD_POSITION[1] + BORDER_GAP[1]
+                        x = BOARD_POSITION[0] + BORDER_GAP[0]
+                        y = BOARD_POSITION[1] + BORDER_GAP[1] 
+                        store_sprite = StoreSprite(self.event_manager, container, (x,y), self.pit_sprites )
                         self.pit_sprites.change_layer(store_sprite, 1)
 
                 # player 1 owned the bottom pits and they need to be constructed from LEFT to RIGHT (1 - 6)
                 for container in game.player1.pit_list:
                     if isinstance(container, Pit):
                         # Add PitSprite binded with a Pit to the render group and place it on the board
-                        # pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
-                        # pit_sprite.rect.x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
-                        # pit_sprite.rect.y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
-                        pit_sprite = PitSprite( self.event_manager, container, self.pit_sprites )
                         x = FIRST_PIT_POS[0] + container.id * (PIT_GAP[0] + PIT_SIZE[0])
                         y = FIRST_PIT_POS[1] + PIT_SIZE[1] + PIT_GAP[1]
-                        pit_sprite.update_pos(x, y)
+                        pit_sprite = PitSprite( self.event_manager, container, (x,y), self.pit_sprites )
                         self.pit_sprites.change_layer(pit_sprite, 1)
                     if isinstance(container, Store):
                         # Add StoreSprite binded with a Store to the render group and place it on the board
-                        store_sprite = StoreSprite(self.event_manager, container, self.pit_sprites )
-                        store_sprite.rect.x = BOARD_POSITION[0] + BOARD_SIZE[0] - BORDER_GAP[0] - STORE_SIZE[0]
-                        store_sprite.rect.y = BOARD_POSITION[1] + BORDER_GAP[1]
+                        x = BOARD_POSITION[0] + BOARD_SIZE[0] - BORDER_GAP[0] - STORE_SIZE[0]
+                        y = BOARD_POSITION[1] + BORDER_GAP[1]
+                        store_sprite = StoreSprite(self.event_manager, container, (x,y), self.pit_sprites )
                         self.pit_sprites.change_layer(store_sprite, 1)
 
                 # draw the render group containing all the pit and store sprites
@@ -311,20 +303,23 @@ class ScoreView:
 class AbstractContainerSprite(pygame.sprite.Sprite):
         """AbstractContainerSprite is the base class to create pit and store sprites
         """
-        def __init__(self, container, group=()):  
+        def __init__(self, container, rect, group=()):  
             self.group = group
             pygame.sprite.Sprite.__init__(self, group)
-            # binding to a specific container object of the game
+            # binding to a specific container object of the game (either a pit or a store)
             self.container = container
+            
             # the list containing the seed sprites in the current container
             self.seed_sprites = []
+            
             # a random angle that will be applied on the seeds to display 
-            self.random_angle = random.randint(0, 360)
-            self.show_seed_nb = False
+            self.seeds_angle = random.randint(0, 360)
+            self.display_seeds_quantity = False
             
             self.myfont = pygame.font.SysFont("monospace", 15)
+            
+            self.rect = rect   
             self.update()
-            self.rect = self.image.get_rect()
 
         def add_seeds(self, quantity):
             total_seed =  len(self.seed_sprites) + quantity
@@ -341,10 +336,7 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
                     seed = SeedSprite(self.group)
                     self.seed_sprites.append(seed)
                     
-                self.set_position(seed, i, total_seed, self.random_angle)
-                if hasattr(self, 'rect'):
-                    seed.update_pos(self.rect.x, self.rect.y)
-                
+                self.set_seed_position(seed, i, total_seed, self.seeds_angle)      
                 
         def remove_seeds(self, quantity):
             for i in range(quantity):
@@ -362,22 +354,17 @@ class AbstractContainerSprite(pygame.sprite.Sprite):
                 self.add_seeds(diff)
             elif(diff < 0):
                 self.remove_seeds(abs(diff))
-                
-        def update_pos(self, x, y):
-            self.rect.x = x
-            self.rect.y = y
-            for seed in self.seed_sprites:
-                seed.update_pos(x, y)
 
 #-------------------------------------------------------------------------------
 class PitSprite(AbstractContainerSprite):
         """PitSprite is used to create a pit on the screen.
         For now the pit is an invisible clicking zone displaying a number of seeds
         """
-        def __init__(self, event_manager, pit, group=()):
+        def __init__(self, event_manager, pit, pos, group=()):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
-            AbstractContainerSprite.__init__(self, pit, group)
+            rect = Rect(pos, PIT_SIZE)
+            AbstractContainerSprite.__init__(self, pit, rect, group)
         
         #----------------------------------------------------------------------
         def update(self):
@@ -388,9 +375,9 @@ class PitSprite(AbstractContainerSprite):
             self.image.fill((0,0,0,0))
             
             # DEBUG: this show the clicking area in red
-            #pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)         
+            # pygame.draw.rect(self.image, RED, [ (0,0), PIT_SIZE ], 1)         
             
-            if(self.show_seed_nb):
+            if(self.display_seeds_quantity):
                 # the data (number of seeds) get updated by poking into the binded pit
                 text = str(self.container.seeds)
                 label = self.myfont.render(text, 1, YELLOW)
@@ -398,8 +385,8 @@ class PitSprite(AbstractContainerSprite):
                 
             self.draw_seeds()
 
-        def set_position(self, seed, pos_id, total_seeds, random_angle):
-            """set_position determine and set the position of the seed in the pit
+        def set_seed_position(self, seed, pos_id, total_seeds, seeds_angle):
+            """set_seed_position determine and set the position of the seed in the pit
             according to the number of seed present in the pit and the seed number (ordered in a list) 
             NOTE: This function is a hack avoiding creating physics to place the seeds
             """
@@ -413,7 +400,7 @@ class PitSprite(AbstractContainerSprite):
                 # 360°/(seed number). If there is more seed than 4 in the pit
                 # that angle is always 90°
                 angle = (360/(total_seeds if total_seeds < 4 else 4))
-                angle_rad = (((pos_id-1)*pi*angle)+(pi*random_angle))/180
+                angle_rad = (((pos_id-1)*pi*angle)+(pi*seeds_angle))/180
                 rot_x = math.cos(angle_rad)
                 rot_y = math.sin(angle_rad)
                 x_pos = rot_x*0.7 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
@@ -422,7 +409,7 @@ class PitSprite(AbstractContainerSprite):
                 # the following seeds in between 5 and 8 are place at an angle of 90°
                 # a bit further away from the center of the pit
                 angle = 90*(pos_id - 8)  + 45
-                angle_rad = ((pi*angle)+(pi*random_angle))/180
+                angle_rad = ((pi*angle)+(pi*seeds_angle))/180
                 rot_x = math.cos(angle_rad)
                 rot_y = math.sin(angle_rad)
                 x_pos = rot_x*1.15 * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
@@ -432,7 +419,7 @@ class PitSprite(AbstractContainerSprite):
                 x_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[0]/4 + PIT_SIZE[0]/2 - SEED_SIZE/2
                 y_pos = random.uniform(-1.0, 1.0) * PIT_SIZE[1]/4 + PIT_SIZE[1]/2 - SEED_SIZE/2
 
-            seed.set_position(x_pos, y_pos)
+            seed.set_position(self.rect.x + x_pos, self.rect.y + y_pos)
 
         #----------------------------------------------------------------------
         def notify(self, event):
@@ -446,20 +433,21 @@ class PitSprite(AbstractContainerSprite):
             if isinstance(event, RightClickEvent):
                 if self.rect.collidepoint(event.pos):
                     if(event.action == MOUSE_DOWN):
-                        self.show_seed_nb = True
+                        self.display_seeds_quantity = True
                 
                 if(event.action == MOUSE_UP):
-                    self.show_seed_nb = False
+                    self.display_seeds_quantity = False
                     
 #------------------------------------------------------------------------------
 class StoreSprite(AbstractContainerSprite):
         """StoreSprite is used to create a store on the screen.
         For now the Store is an invisible zone displaying a number of seeds
         """
-        def __init__(self, event_manager, store, group=()):
+        def __init__(self, event_manager, store, pos, group=()):
             self.event_manager = event_manager
             self.event_manager.register_listener( self )
-            AbstractContainerSprite.__init__(self, store, group)
+            rect = Rect(pos, STORE_SIZE)
+            AbstractContainerSprite.__init__(self, store, rect, group)
 
         def update(self):
             """update draw the graphics element of the store sprite with potentially new data
@@ -470,7 +458,7 @@ class StoreSprite(AbstractContainerSprite):
             self.image.fill((0,0,0,0))
             #pygame.draw.rect(self.image, RED, [ (0,0), STORE_SIZE ], 1)
 
-            if(self.show_seed_nb):
+            if(self.display_seeds_quantity):
                 # the data (number of seeds) get updated by poking into the binded pit
                 text = str(self.container.seeds)
                 label = self.myfont.render(text, 1, YELLOW)
@@ -478,8 +466,8 @@ class StoreSprite(AbstractContainerSprite):
             
             self.draw_seeds()
 
-        def set_position(self, seed, pos_id, total_seeds, random_angle):
-            """set_position determine and set the position of the seed in the store
+        def set_seed_position(self, seed, pos_id, total_seeds, random_angle):
+            """set_seed_position determine and set the position of the seed in the store
             """
             slot_size = (STORE_SIZE[0]/4, STORE_SIZE[1]/7)
             slot_origin = (1,5)
@@ -491,7 +479,7 @@ class StoreSprite(AbstractContainerSprite):
                 x_pos = random.uniform(slot_origin[0] + slot_size[0], slot_origin[0] + 2*slot_size[0])
                 y_pos = random.uniform(slot_origin[1] + slot_size[1], slot_origin[1] + 5*slot_size[1])
             
-            seed.set_position(x_pos, y_pos)
+            seed.set_position(self.rect.x + x_pos, self.rect.y + y_pos)
         
 #----------------------------------------------------------------------
         def notify(self, event):
@@ -505,10 +493,10 @@ class StoreSprite(AbstractContainerSprite):
             if isinstance(event, RightClickEvent):
                 if self.rect.collidepoint(event.pos):
                     if(event.action == MOUSE_DOWN):
-                        self.show_seed_nb = True
+                        self.display_seeds_quantity = True
                 
                 if(event.action == MOUSE_UP):
-                    self.show_seed_nb = False
+                    self.display_seeds_quantity = False
 
 #------------------------------------------------------------------------------
 import random
@@ -534,16 +522,10 @@ class SeedSprite(pygame.sprite.Sprite):
             self.surface = pygame.transform.scale(self.surface, (SEED_SIZE, SEED_SIZE))
             self.image = self.surface
             self.rect = self.image.get_rect()
-        
-        def update_pos(self, x, y):
-            """update_pos move the seed to a new position
-            """
-            self.rect.x = x + self.x_pos
-            self.rect.y = y + self.y_pos
 
         def set_position(self, x, y):
-            self.x_pos = x
-            self.y_pos = y
+            self.rect.x = x
+            self.rect.y = y
          
 #------------------------------------------------------------------------------
 class BackgroundSprite(pygame.sprite.Sprite):
