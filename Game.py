@@ -13,7 +13,7 @@ from Global import Debug
 #------------------------------------------------------------------------------
 class Game:
         """Game is the model that hold the rules for the game
-        and process the necessary actions acording the incoming events
+        and process the necessary actions acording to the incoming events
         """
         def __init__(self, event_manager):
             self.event_manager = event_manager
