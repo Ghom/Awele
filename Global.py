@@ -43,6 +43,14 @@ WHITE  = (255, 255, 255)
 RED    = (255,   0,   0)
 YELLOW = (255, 255,   0)
 
+#---------------------------------------------------------------------------------
+# Game UI type selection
+GRAPHIC_UI = 0
+CONSOL_UI = 1
+# UI_TYPE = CONSOL_UI
+UI_TYPE = GRAPHIC_UI
+
 #----------------------------------------------------------------------------------
 def Debug( *msg ):
-	print("[DEBUG]:",*msg)
+    # print("[DEBUG]:",*msg)
+    pass

@@ -78,6 +78,7 @@ class Game:
                 
             Debug("Active player:",self.active_player.name)
             self.event_manager.post(TextInfoEvent("["+self.active_player.name+"]", True))
+            self.event_manager.post(EndTurnEvent(self))
 
         #----------------------------------------------------------------------
         def end_game(self):

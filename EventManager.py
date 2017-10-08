@@ -166,6 +166,16 @@ class GameStartedEvent(Event):
             self.name = "Game Started Event"
             self.game = game
 
+class EndTurnEvent(Event):
+        """EndTurnEvent is emmited from the game 
+        when the turn is done
+        Attributes:
+        game -- reference the the game instance
+        """
+        def __init__(self, game):
+            self.name = "End Turn Event"
+            self.game = game
+            
 class EndGameEvent(Event):
         """EndGameEvent is emmited from the game 
         when it finish
