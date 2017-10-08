@@ -9,31 +9,64 @@ Creation date: 13/06/2017
 
 from EventManager import *
 from Global import Debug
+import copy
 
 #------------------------------------------------------------------------------
 class Game:
         """Game is the model that hold the rules for the game
         and process the necessary actions acording to the incoming events
         """
-        def __init__(self, event_manager):
-            self.event_manager = event_manager
-            self.event_manager.register_listener( self )
+        def __init__(self, event_manager=None, other=None):
+            if(isinstance(other, Game)):
+                self.__copy_constructor__(other, event_manager)
+            else:
+                self.event_manager = event_manager
+                self.event_manager.register_listener( self )
 
-            # Initialise the pits and stores and create a list for each player
-            self.init_containers()
+                # Initialise the pits and stores and create a list for each player
+                self.init_containers()
+                
+                # Create players and assign them a pit list
+                self.player1 = Player("Player 1", self.p1_containers)
+                self.player2 = Player("Player 2", self.p2_containers)
+                self.active_player = self.player1
+                self.inactive_player = self.player2
+                self.winner = None
+
+                self.play_again = False
+
+                self.event_manager.post(GameStartedEvent(self))
+                self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
+        
+        #---------------------------------------------------------------------
+        """ This is the copy constructor for the class game this is 
+        supposed to be called by the __init__ constructor when a Game object 
+        is passed as a parameter
+        """
+        def __copy_constructor__(self, other, event_manager):
+            if( isinstance(event_manager, EventManager)):           
+                self.event_manager = event_manager  
+            else:
+                self.event_manager = other.event_manager
+            self.event_manager.register_listener( self )
+            
+            # copy the pits and stores for each player
+
+            self.p1_containers = copy.deepcopy(other.p1_containers)
+            self.p2_containers = copy.deepcopy(other.p2_containers)
             
             # Create players and assign them a pit list
-            self.player1 = Player("Player 1", self.p1_containers)
-            self.player2 = Player("Player 2", self.p2_containers)
-            self.active_player = self.player1
-            self.inactive_player = self.player2
-            self.winner = None
+            # self.player1 = Player("Player 1", self.p1_containers)
+            # self.player2 = Player("Player 2", self.p2_containers)
+            # self.active_player = self.player1
+            # self.inactive_player = self.player2
+            # self.winner = None
 
-            self.play_again = False
+            # self.play_again = False
 
-            self.event_manager.post(GameStartedEvent(self))
-            self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
-        
+            # self.event_manager.post(GameStartedEvent(self))
+            # self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
+            
         #---------------------------------------------------------------------
         def init_containers(self):
             """init_containers create two linked list of containers containing 6 pits and one store.

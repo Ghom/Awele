@@ -7,6 +7,7 @@ Creation date: 07/10/2017
 """
 from EventManager import *
 from Game import *
+from AI_player import * 
 import sys
 
 class ViewManager_terminal:
@@ -15,6 +16,7 @@ class ViewManager_terminal:
         self.event_manager.register_listener(self)
         
         self.game = Game(self.event_manager)
+        self.computer = AI_player(self.event_manager, self.game)
         self.draw_board()
         self.select_pit()
     
