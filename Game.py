@@ -48,24 +48,35 @@ class Game:
                 self.event_manager = event_manager  
             else:
                 self.event_manager = other.event_manager
+                
             self.event_manager.register_listener( self )
             
-            # copy the pits and stores for each player
-
-            self.p1_containers = copy.deepcopy(other.p1_containers)
-            self.p2_containers = copy.deepcopy(other.p2_containers)
             
-            # Create players and assign them a pit list
-            # self.player1 = Player("Player 1", self.p1_containers)
-            # self.player2 = Player("Player 2", self.p2_containers)
-            # self.active_player = self.player1
-            # self.inactive_player = self.player2
-            # self.winner = None
+            # Initialise the pits and stores and create a list for each player
+            self.init_containers()
 
-            # self.play_again = False
+            self.player1 = Player(other.player1.name, self.p1_containers)
+            self.player2 = Player(other.player2.name, self.p2_containers)
+            
+            if( other.active_player.name == self.player1.name): 
+                self.active_player = self.player1
+                self.inactive_player = self.player2
+            else:
+                self.active_player = self.player2
+                self.inactive_player = self.player1
+            
+            if( isinstance(other.winner, Player) and other.winner.name == self.player1.name):
+                self.winner = self.player1
+            elif( isinstance(other.winner, Player) and other.winner.name == self.player2.name):
+                self.winner = self.player2
+            else:
+                self.winner = None
+            
+            # match the seed repartition in between boards
+            self.import_board(other.export_board())
 
-            # self.event_manager.post(GameStartedEvent(self))
-            # self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
+            self.play_again = other.play_again
+
             
         #---------------------------------------------------------------------
         def init_containers(self):
@@ -109,7 +120,6 @@ class Game:
             else:
                 self.play_again = False
                 
-            Debug("Active player:",self.active_player.name)
             self.event_manager.post(TextInfoEvent("["+self.active_player.name+"]", True))
             self.event_manager.post(EndTurnEvent(self))
 
@@ -212,7 +222,29 @@ class Game:
                 else:
                     Debug("This pit doesn't belong to you")
                     self.event_manager.post(TextInfoEvent("This pit doesn't belong to you"))
-                    
+        
+        #----------------------------------------------------------------------
+        def export_board(self):
+            # represent the exported data as a flat array containing p1 pits/store + p2 pits/store
+            player1_data = []
+            player2_data = []
+            for container in self.player1.pit_list:
+                player1_data +=  [container.seeds]
+            for container in self.player2.pit_list:
+                player2_data +=  [container.seeds]
+            
+            return [self.active_player, player1_data, player2_data]
+        
+        #----------------------------------------------------------------------
+        def import_board(self, data):
+            for i, container in enumerate(self.player1.pit_list):
+                container.seeds = data[1][i]
+            for i, container in enumerate(self.player2.pit_list):
+                container.seeds = data[2][i]
+            
+            if(self.active_player != data[0]):
+                self.active_player, self.inactive_player = self.inactive_player, self.active_player
+            
         #----------------------------------------------------------------------
         def notify(self, event):
             """notify is the incoming point of events reception

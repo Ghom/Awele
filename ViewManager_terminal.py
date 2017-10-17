@@ -29,7 +29,21 @@ class ViewManager_terminal:
         print("|",top_bank, "\t|",          "\t|",          "\t|",          "\t|",          "\t|",          "\t|"           "\t|",bot_bank, "\t|",)
         print("|",          "\t|",bot_pit1, "\t|",bot_pit2, "\t|",bot_pit3, "\t|",bot_pit4, "\t|",bot_pit5, "\t|",bot_pit6, "\t|",          "\t|",)
         print(" ---------------------------------------------------------------")
+        
+        self.computer.play()
     
+    def AI_board(self):
+        top_pit1, top_pit2, top_pit3, top_pit4, top_pit5, top_pit6, top_bank = [pit.seeds for pit in self.computer.game_tester.player2.pit_list]
+        bot_pit1, bot_pit2, bot_pit3, bot_pit4, bot_pit5, bot_pit6, bot_bank = [pit.seeds for pit in self.computer.game_tester.player1.pit_list]
+        
+        print("this is the computer board state ---------------------------------------------")
+        print(" ---------------------------------------------------------------")
+        print("|",          "\t|",top_pit6, "\t|",top_pit5, "\t|",top_pit4, "\t|",top_pit3, "\t|",top_pit2, "\t|",top_pit1, "\t|",          "\t|",)
+        print("|",top_bank, "\t|",          "\t|",          "\t|",          "\t|",          "\t|",          "\t|"           "\t|",bot_bank, "\t|",)
+        print("|",          "\t|",bot_pit1, "\t|",bot_pit2, "\t|",bot_pit3, "\t|",bot_pit4, "\t|",bot_pit5, "\t|",bot_pit6, "\t|",          "\t|",)
+        print(" ---------------------------------------------------------------")
+        print("-------------------------------------------------------------------------------")
+        
     def select_pit(self):
         sel_pit = input("What pit do you want to select? ")
         self.event_manager.post(PitClickedEvent(self.game.active_player.pit_list[int(sel_pit)-1]))

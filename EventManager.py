@@ -15,15 +15,16 @@ from Global import Debug
 #TODO: Remove Event suffixe from the events names
 
 #------------------------------------------------------------------------------
-class EventManager:
+class EventManager: 
         """EventManager is responsible for coordinating most communication
         between the Model, View, and Controller. His role is to keep track
         of the different observer and notify them when someone post an event
         """
-        def __init__(self):
+        def __init__(self, name="Default"):
             from weakref import WeakKeyDictionary
             self.listeners = WeakKeyDictionary()
             self.event_queue= []
+            self.name = name
 
         #----------------------------------------------------------------------
         def register_listener( self, listener ):
@@ -37,7 +38,7 @@ class EventManager:
         #----------------------------------------------------------------------
         def post( self, event ):
             if not isinstance(event, TickEvent):
-                Debug( "     Message: " + event.name )
+                Debug( self.name + " event manager Message: " + event.name )
             for listener in list(self.listeners):
                 #NOTE: If the weakref has died, it will be 
                 #automatically removed, so we don't have 
