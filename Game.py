@@ -34,7 +34,7 @@ class Game:
                 self.winner = None
 
                 self.play_again = False
-
+                
                 self.event_manager.post(GameStartedEvent(self))
                 self.event_manager.post(TextInfoEvent("The game has started, this is Player 1 turn"))
         
@@ -76,7 +76,6 @@ class Game:
             self.import_board(other.export_board())
 
             self.play_again = other.play_again
-
             
         #---------------------------------------------------------------------
         def init_containers(self):
@@ -154,6 +153,7 @@ class Game:
             if self.player1.pit_list[6].seeds != self.player2.pit_list[6].seeds:
                 self.winner = self.player1 if self.player1.pit_list[6].seeds > self.player2.pit_list[6].seeds else self.player2
 
+            
             # Send the end of game event so the view can change
             self.event_manager.post(EndGameEvent(self))
             
@@ -225,7 +225,7 @@ class Game:
         
         #----------------------------------------------------------------------
         def export_board(self):
-            # represent the exported data as a flat array containing p1 pits/store + p2 pits/store
+            # represent the exported data as two arrays containing p1 pits/store  and p2 pits/store
             player1_data = []
             player2_data = []
             for container in self.player1.pit_list:
@@ -233,17 +233,27 @@ class Game:
             for container in self.player2.pit_list:
                 player2_data +=  [container.seeds]
             
-            return [self.active_player, player1_data, player2_data]
+            return [player1_data, player2_data]
         
         #----------------------------------------------------------------------
         def import_board(self, data):
             for i, container in enumerate(self.player1.pit_list):
-                container.seeds = data[1][i]
+                container.seeds = data[0][i]
             for i, container in enumerate(self.player2.pit_list):
-                container.seeds = data[2][i]
+                container.seeds = data[1][i]
+        
+        def available_moves(self):
+            return [i for i,x in enumerate(self.active_player.pit_list) if x.seeds != 0] 
+        
+        def next_state(self, move):
+            dummy_event_manager = EventManager("dummy")
+            game = Game(dummy_event_manager, self) # copy constructor
+            game.pit_clicked(move)
             
-            if(self.active_player != data[0]):
-                self.active_player, self.inactive_player = self.inactive_player, self.active_player
+            return game
+        
+        def is_over(self):
+            return self.winner != None
             
         #----------------------------------------------------------------------
         def notify(self, event):

@@ -29,8 +29,6 @@ class ViewManager_terminal:
         print("|",top_bank, "\t|",          "\t|",          "\t|",          "\t|",          "\t|",          "\t|"           "\t|",bot_bank, "\t|",)
         print("|",          "\t|",bot_pit1, "\t|",bot_pit2, "\t|",bot_pit3, "\t|",bot_pit4, "\t|",bot_pit5, "\t|",bot_pit6, "\t|",          "\t|",)
         print(" ---------------------------------------------------------------")
-        
-        self.computer.play()
     
     def AI_board(self):
         top_pit1, top_pit2, top_pit3, top_pit4, top_pit5, top_pit6, top_bank = [pit.seeds for pit in self.computer.game_tester.player2.pit_list]
@@ -55,8 +53,6 @@ class ViewManager_terminal:
         """
         if isinstance(event, GameStartedEvent):
             # when the game start "draw" the board and ask for pit selection
-            # self.draw_board()
-            # self.select_pit()
             pass
 
         if isinstance(event, TextInfoEvent):
@@ -66,4 +62,6 @@ class ViewManager_terminal:
         if isinstance(event, EndTurnEvent):
             # when the turn is finish "draw" the board and ask for pit selection
             self.draw_board()
+            if(self.game.active_player == self.game.player2):
+                self.computer.play()
             self.select_pit()

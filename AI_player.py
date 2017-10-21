@@ -28,24 +28,115 @@ class AI_player:
     #----------------------------------------------------------------------
     def play(self):
         self.game_tester.import_board(self.game.export_board())
-        tree = []
-        self.construct_tree(tree, 3)
-        for item in tree:
-            print("Recursion:{} Pit:{} Next Player:{} P1_pits:{} P2_pits:{}".format(item[0], item[1]+1, item[2][0].name, item[2][1], item[2][2]))
+        node = Node(NodeType.max, 0, self.game_tester.export_board(), root=True)
+        move = self.minimax(node, self.game_tester, 3)
+        print("Minimax decided to pick pit N°{}".format(move+1))
+        self.event_manager.post(PitClickedEvent(self.game.active_player.pit_list[move]))
+        # for item in tree:
+            # print("Recursion:{} Pit:{} Next Player:{} P1_pits:{} P2_pits:{}".format(item[0], item[1]+1, item[2][0].name, item[2][1], item[2][2]))
         
     #----------------------------------------------------------------------
-    def construct_tree(self, tree, recursion_depth):
-        game_state = self.game_tester.export_board()
-        active_player = game_state[0]
+    def minimax(self, node, game, recursion_depth):
+        moves = game.available_moves()
+        best_move = moves[0]
+        best_score = float('-inf')
+        for move in moves:
+            next_game = game.next_state(move)
+            
+            # The following trick define the fact that a max_play can call another max_play
+            # if the resulting game allow the max player to play again
+            
+            # If the resulting game belong to "max" aka the computer aka player 2
+            if(next_game.active_player == next_game.player2):
+                node_type = NodeType.max
+                minimax_fct = self.max_play
+            # If the resulting game belong to "min" aka the player aka player 1
+            elif(next_game.active_player == next_game.player1):
+                node_type = NodeType.min
+                minimax_fct = self.min_play
+                
+            child = Node(node_type, move, next_game.export_board())
+            node.add_child(child)
+            
+            if(recursion_depth > 0):
+                score = minimax_fct(child, next_game, recursion_depth-1)
+            else:
+                score = self.evaluate(next_game)
+                
+            if(score > best_score):
+                best_move = move
+                best_score = score
         
-        for i, val in enumerate(game_state[1 if active_player == self.game_tester.player1 else 2][0:6]):
-            self.game_tester.import_board(game_state)
-            if(val != 0):
-                active_player.pit_list[i].distribute()
-                new_state = self.game_tester.export_board()
-                tree.append((recursion_depth, i, new_state))
-                if(recursion_depth > 0):
-                    self.construct_tree(tree, recursion_depth-1)
+        return best_move
+    
+    def min_play(self, node, game, recursion_depth):
+        if(game.is_over() or recursion_depth <= 0):
+            node.leaf = True
+            return self.evaluate(game)
+        
+        moves = game.available_moves()
+        lowest_score = float('inf')
+        for move in moves:
+            next_game = game.next_state(move)
+            
+            # The following trick define the fact that a min_play can call another min_play
+            # if the resulting game allow the min player to play again
+            
+            # If the resulting game belong to "max" aka the computer aka player 2
+            if(next_game.active_player == next_game.player2):
+                node_type = NodeType.max
+                minimax_fct = self.max_play
+            # If the resulting game belong to "min" aka the player aka player 1
+            elif(next_game.active_player == next_game.player1):
+                node_type = NodeType.min
+                minimax_fct = self.min_play
+                
+            child = Node(node_type, move, next_game.export_board())
+            node.add_child(child)
+            
+            score = minimax_fct(child, next_game, recursion_depth-1)    
+            if(score < lowest_score):
+                lowest_score = score
+        
+        return lowest_score
+        
+    
+    def max_play(self, node, game, recursion_depth):
+        if(game.is_over() or recursion_depth <= 0):
+            node.leaf = True
+            return self.evaluate(game)
+        
+        moves = game.available_moves()
+        best_score = float('-inf')
+        for move in moves:
+            next_game = game.next_state(move)
+            
+            # The following trick define the fact that a max_play can call another max_play
+            # if the resulting game allow the max player to play again
+            
+            # If the resulting game belong to "max" aka the computer aka player 2
+            if(next_game.active_player == next_game.player2):
+                node_type = NodeType.max
+                minimax_fct = self.max_play
+            # If the resulting game belong to "min" aka the player aka player 1
+            elif(next_game.active_player == next_game.player1):
+                node_type = NodeType.min
+                minimax_fct = self.min_play
+                
+            child = Node(node_type, move, next_game.export_board())
+            node.add_child(child)
+            
+            score = minimax_fct(child, next_game, recursion_depth-1)    
+            if(score > best_score):
+                best_score = score
+        
+        return best_score
+    
+    def evaluate(self, game):
+        # we assume that the computer is always player 2
+        game_state = game.export_board()
+        # return the difference of scores (player 2 - player 1)
+        return game_state[1][6] - game_state[0][6]
     
     #----------------------------------------------------------------------
     def notify(self, event):
@@ -54,6 +145,29 @@ class AI_player:
         #if isinstance(event, PitClickedEvent ):
         pass
         
-       
+from enum import Enum
+class NodeType(Enum):
+    min = 0
+    max = 1
+    undefined = 2
+
 class Node:
-    self.type = 
+    def __init__(self, node_type, move, game_state, root=False, leaf=False):
+        self.type = node_type # min or max node
+        self.leaf = leaf # is the node a leaf
+        self.root = root # is the node the root
+        self.move = move # the move chosen
+        self.game_state = game_state  # the resulted game state
+        self.value =  None # the value that minimax compute
+        
+        self.alpha = 0
+        self.beta = 0 
+        
+        self.parent = None # parent node 
+        self.childs = [] # list of child nodes
+        
+    def add_child(self, node):
+        self.childs.append(node)
+        node.parent = self
+    
+    
