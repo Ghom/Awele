@@ -153,8 +153,14 @@ class AI_player:
     def evaluate(self, game):
         # we assume that the computer is always player 2
         game_state = game.export_board()
-        # return the difference of scores (player 2 - player 1)
-        return game_state[1][6] - game_state[0][6]
+        computer_points = game_state[1][6]
+        opponent_points = game_state[0][6]
+        alpha = 1
+        computer_seeds_left = sum(game_state[1][0:6])
+        opponent_seeds_left = sum(game_state[0][0:6])
+        heuristic = computer_points - opponent_points + alpha * (computer_seeds_left - opponent_seeds_left)
+        
+        return heuristic
     
     #----------------------------------------------------------------------
     def notify(self, event):
