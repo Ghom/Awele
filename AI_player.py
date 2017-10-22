@@ -8,6 +8,7 @@ Creation date: 08/10/2017
 
 from EventManager import *
 from Game import *
+from Global import *
 
 class AI_player:
     """AI_player class is the entry point of the AI engine
@@ -28,8 +29,8 @@ class AI_player:
     #----------------------------------------------------------------------
     def play(self):
         self.game_tester.import_board(self.game.export_board())
-        node = Node(NodeType.max, 0, self.game_tester.export_board(), root=True)
-        move = self.minimax(node, self.game_tester, 3)
+        node = Node(NodeType.max, 0, self.game.export_board(), root=True)
+        move = self.minimax(node, self.game, MAX_RECURSION_DEPTH)
         print("Minimax decided to pick pit N°{}".format(move+1))
         self.event_manager.post(PitClickedEvent(self.game.active_player.pit_list[move]))
         # for item in tree:
@@ -41,7 +42,11 @@ class AI_player:
         best_move = moves[0]
         best_score = float('-inf')
         for move in moves:
+            for i in range((MAX_RECURSION_DEPTH+1)-(recursion_depth+1)):
+                Debug("\t",end="")
+            Debug("[minimax]{} move:{} ".format(game.active_player.name, move), end="")
             next_game = game.next_state(move)
+            Debug("board:{} ".format(next_game.export_board()), end="")
             
             # The following trick define the fact that a max_play can call another max_play
             # if the resulting game allow the max player to play again
@@ -58,7 +63,7 @@ class AI_player:
             child = Node(node_type, move, next_game.export_board())
             node.add_child(child)
             
-            if(recursion_depth > 0):
+            if(recursion_depth >= 0):
                 score = minimax_fct(child, next_game, recursion_depth-1)
             else:
                 score = self.evaluate(next_game)
@@ -70,14 +75,21 @@ class AI_player:
         return best_move
     
     def min_play(self, node, game, recursion_depth):
-        if(game.is_over() or recursion_depth <= 0):
+        if(game.is_over() or recursion_depth < 0):
+            Debug("[LEAF] eval:{}".format(self.evaluate(game)))
             node.leaf = True
             return self.evaluate(game)
+        
+        Debug("")
         
         moves = game.available_moves()
         lowest_score = float('inf')
         for move in moves:
+            for i in range((MAX_RECURSION_DEPTH+1)-(recursion_depth+1)):
+                Debug("\t",end="")
+            Debug("[min]{} move:{} ".format(game.active_player.name, move), end="")
             next_game = game.next_state(move)
+            Debug("board:{} ".format(next_game.export_board()), end="")
             
             # The following trick define the fact that a min_play can call another min_play
             # if the resulting game allow the min player to play again
@@ -102,14 +114,20 @@ class AI_player:
         
     
     def max_play(self, node, game, recursion_depth):
-        if(game.is_over() or recursion_depth <= 0):
+        if(game.is_over() or recursion_depth < 0):
+            Debug("[LEAF] eval:{}".format(self.evaluate(game)))
             node.leaf = True
             return self.evaluate(game)
+        Debug("")
         
         moves = game.available_moves()
         best_score = float('-inf')
         for move in moves:
+            for i in range((MAX_RECURSION_DEPTH+1)-(recursion_depth+1)):
+                Debug("\t",end="")
+            Debug("[max]{} move:{} ".format(game.active_player.name, move), end="")
             next_game = game.next_state(move)
+            Debug("board:{} ".format(next_game.export_board()), end="")
             
             # The following trick define the fact that a max_play can call another max_play
             # if the resulting game allow the max player to play again

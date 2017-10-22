@@ -243,13 +243,12 @@ class Game:
                 container.seeds = data[1][i]
         
         def available_moves(self):
-            return [i for i,x in enumerate(self.active_player.pit_list) if x.seeds != 0] 
+            return [i for i,x in enumerate(self.active_player.pit_list[0:6]) if x.seeds != 0] 
         
         def next_state(self, move):
             dummy_event_manager = EventManager("dummy")
             game = Game(dummy_event_manager, self) # copy constructor
-            game.pit_clicked(move)
-            
+            game.pit_clicked(game.active_player.pit_list[move])
             return game
         
         def is_over(self):

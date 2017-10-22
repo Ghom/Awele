@@ -50,7 +50,11 @@ CONSOL_UI = 1
 #UI_TYPE = GRAPHIC_UI
 UI_TYPE = CONSOL_UI
 
+#---------------------------------------------------------------------------------
+# AI configuration
+MAX_RECURSION_DEPTH = 3
+
 #----------------------------------------------------------------------------------
-def Debug( *msg ):
+def Debug( *args, **kwargs):
     # print("[DEBUG]:",*msg)
     pass
