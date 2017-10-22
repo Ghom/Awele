@@ -64,7 +64,11 @@ class AI_player:
             node.add_child(child)
             
             if(recursion_depth >= 0):
-                score = minimax_fct(child, next_game, recursion_depth-1)
+                if(minimax_fct == self.min_play):
+                    recursion = recursion_depth-1
+                else:
+                    recursion = recursion_depth
+                score = minimax_fct(child, next_game, recursion)
             else:
                 score = self.evaluate(next_game)
                 
@@ -106,7 +110,8 @@ class AI_player:
             child = Node(node_type, move, next_game.export_board())
             node.add_child(child)
             
-            score = minimax_fct(child, next_game, recursion_depth-1)    
+            # only decrement recursion_depth in max_play
+            score = minimax_fct(child, next_game, recursion_depth)    
             if(score < lowest_score):
                 lowest_score = score
         
@@ -144,7 +149,13 @@ class AI_player:
             child = Node(node_type, move, next_game.export_board())
             node.add_child(child)
             
-            score = minimax_fct(child, next_game, recursion_depth-1)    
+            # only decrement recursion_depth if switching to min_play
+            if(minimax_fct == self.min_play):
+                recursion = recursion_depth-1
+            else:
+                recursion = recursion_depth
+                    
+            score = minimax_fct(child, next_game, recursion)    
             if(score > best_score):
                 best_score = score
         

@@ -47,12 +47,12 @@ YELLOW = (255, 255,   0)
 # Game UI type selection
 GRAPHIC_UI = 0
 CONSOL_UI = 1
-#UI_TYPE = GRAPHIC_UI
+# UI_TYPE = GRAPHIC_UI
 UI_TYPE = CONSOL_UI
 
 #---------------------------------------------------------------------------------
 # AI configuration
-MAX_RECURSION_DEPTH = 5
+MAX_RECURSION_DEPTH = 2
 
 #----------------------------------------------------------------------------------
 def Debug( *args, **kwargs):
