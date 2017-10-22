@@ -43,7 +43,9 @@ class ViewManager_terminal:
         print("-------------------------------------------------------------------------------")
         
     def select_pit(self):
-        sel_pit = input("What pit do you want to select? ")
+        sel_pit = -1
+        while(not int(sel_pit)-1 in self.game.available_moves()):
+            sel_pit = input("What pit do you want to select? ")
         self.event_manager.post(PitClickedEvent(self.game.active_player.pit_list[int(sel_pit)-1]))
 
         
@@ -62,6 +64,10 @@ class ViewManager_terminal:
         if isinstance(event, EndTurnEvent):
             # when the turn is finish "draw" the board and ask for pit selection
             self.draw_board()
-            if(self.game.active_player == self.game.player2):
-                self.computer.play()
-            self.select_pit()
+            if(not self.game.is_over()):
+                if(self.game.active_player == self.game.player2):
+                    self.computer.play()
+                else:
+                    self.select_pit()
+            else:
+               print("THE GAME IS OVER")
